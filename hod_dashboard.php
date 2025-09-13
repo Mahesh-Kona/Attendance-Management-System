@@ -1,213 +1,166 @@
 <?php
 session_start();
-include 'db_connect.php'; // your DB connection
+include 'db_connect.php';
 
 // Only allow HOD access
 if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'hod'){
     die("Access Denied");
 }
 
-// Dept from session
-$dept = $_SESSION['dept']; 
+$dept = $_SESSION['dept'];
 
-$result = null;
-$summaryPercent = null;
-$overallDeptPercent = null;
-
+// --- GET FILTERS ---
 $year = $_GET['year'] ?? '';
-$section = $_GET['section'] ?? '';
+$month = $_GET['month'] ?? '';
+$percentFilter = $_GET['percent'] ?? '';
+$academicYear = $_GET['ay'] ?? '';
 
-if($dept){
+$sectionData = [];
+$deptAvg = "NA";
 
-    // STEP 1: Student-Subject level attendance %
-
-    $sql = "SELECT a.student_id, a.subject_code,
+if($dept && $year && $academicYear && $month){  // only run query if all filters selected
+    $sql = "SELECT a.section,
                    COUNT(CASE WHEN a.status='P' THEN 1 END) AS attended,
                    COUNT(*) AS total_classes,
                    ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
             FROM attendance a
-            WHERE a.dept=?";
-    $params = [$dept];
-    $types = "s";
+            WHERE a.dept=? AND a.year=? AND a.academic_year=? AND a.month=?";
+    $params = [$dept, $year, $academicYear, $month];
+    $types = "ssss";
 
-    if($year){
-        $sql .= " AND a.year=?";
-        $params[] = $year;
-        $types .= "s";
-    }
-
-    if($section){
-        $sql .= " AND a.section=?";
-        $params[] = $section;
-        $types .= "s";
-    }
-
-    $sql .= " GROUP BY a.student_id, a.subject_code";
+    $sql .= " GROUP BY a.section";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param($types, ...$params);
     $stmt->execute();
-    $studentSubjectRes = $stmt->get_result();
+    $res = $stmt->get_result();
 
-    // Organize student -> [subject%...]
-    $studentData = [];
-    while($row = $studentSubjectRes->fetch_assoc()){
-        $studentData[$row['student_id']][] = $row['percent'];
+    $sectionPercents = [];
+    while($row = $res->fetch_assoc()){
+        if ($percentFilter !== '' && $row['percent'] >= (int)$percentFilter) {
+            continue;
+        }
+        $sectionData["Section-".$row['section']] = $row['percent'];
+        $sectionPercents[] = $row['percent'];
     }
 
- 
-    // STEP 2: Average per student
-  
-    $studentAvg = [];
-    foreach($studentData as $sid => $subjects){
-        $studentAvg[$sid] = array_sum($subjects)/count($subjects);
+    if(count($sectionPercents) > 0){
+        $deptAvg = round(array_sum($sectionPercents)/count($sectionPercents), 2);
     }
-
-    // STEP 3: Average across all students (Filtered Summary)
-
-    if(count($studentAvg) > 0){
-        $summaryPercent = round(array_sum($studentAvg)/count($studentAvg),2);
-    } else {
-        $summaryPercent = "NA";
-    }
-
-
-    // STEP 4: Overall Dept Attendance %
-    
-    $sql3 = "SELECT a.student_id, a.subject_code,
-                    COUNT(CASE WHEN a.status='P' THEN 1 END) AS attended,
-                    COUNT(*) AS total_classes,
-                    ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
-             FROM attendance a
-             WHERE a.dept=?
-             GROUP BY a.student_id, a.subject_code";
-
-    $stmt3 = $conn->prepare($sql3);
-    $stmt3->bind_param("s", $dept);
-    $stmt3->execute();
-    $deptRes = $stmt3->get_result();
-
-    $deptData = [];
-    while($row = $deptRes->fetch_assoc()){
-        $deptData[$row['student_id']][] = $row['percent'];
-    }
-
-    $deptAvg = [];
-    foreach($deptData as $sid => $subjects){
-        $deptAvg[$sid] = array_sum($subjects)/count($subjects);
-    }
-
-    if(count($deptAvg) > 0){
-        $overallDeptPercent = round(array_sum($deptAvg)/count($deptAvg),2);
-    } else {
-        $overallDeptPercent = "NA";
-    }
-
-    // STEP 5: Detailed Subject Results for display
-
-    $sql4 = "SELECT a.subject_code, a.subject_name, a.year, a.section,
-                    COUNT(CASE WHEN a.status='P' THEN 1 END) AS attended,
-                    COUNT(*) AS total_classes,
-                    ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
-             FROM attendance a
-             WHERE a.dept=?";
-    $params4 = [$dept];
-    $types4 = "s";
-
-    if($year){
-        $sql4 .= " AND a.year=?";
-        $params4[] = $year;
-        $types4 .= "s";
-    }
-    if($section){
-        $sql4 .= " AND a.section=?";
-        $params4[] = $section;
-        $types4 .= "s";
-    }
-
-    $sql4 .= " GROUP BY a.subject_code, a.year, a.section";
-
-    $stmt4 = $conn->prepare($sql4);
-    $stmt4->bind_param($types4, ...$params4);
-    $stmt4->execute();
-    $result = $stmt4->get_result();
 }
-?>
 
+// --- Always show Section-1 to Section-6 ---
+$allSections = [];
+for($i=1; $i<=6; $i++){
+    $secKey = "Section-$i";
+    $allSections[$secKey] = $sectionData[$secKey] ?? 0;
+}
+$sectionData = $allSections;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>HOD Dashboard - Attendance Statistics</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script>
-    function autoSubmit(){
-      document.getElementById('filterForm').submit();
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-light">
-<div class="d-flex justify-content-center align-items-center mb-4 position-relative">
-    <h2 class="text-center m-0">
-        Head of the Department, <?php echo htmlspecialchars($dept); ?><br> Attendance Statistics
-    </h2>
-    <a href="index.php" class="btn btn-primary position-absolute end-0">
-        Logout
-    </a>
+<br>
+<div class="d-flex justify-content-center align-items-center mb-4 position-relative text-center">
+  <div>
+    <h1>Attendance Management System</h1>
+    <h2 class="m-0">Head of the Department, <?= htmlspecialchars($dept); ?></h2>
+  </div>
+  
+  <a href="index.php" class="btn btn-primary position-absolute end-0">
+    Logout
+  </a>
 </div>
+
 
 <div class="container mt-4">
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <form method="GET" action="" id="filterForm">
-        <div class="row mb-3">
-          <!-- Year -->
-          <div class="col-md-6">
-            <label class="form-label">Year</label>
-            <select name="year" class="form-select" onchange="autoSubmit()">
-              <option value="">Select Year</option>
-              <option value="E1" <?= ($year=="E1")?'selected':'' ?>>E1</option>
-              <option value="E2" <?= ($year=="E2")?'selected':'' ?>>E2</option>
-              <option value="E3" <?= ($year=="E3")?'selected':'' ?>>E3</option>
-              <option value="E4" <?= ($year=="E4")?'selected':'' ?>>E4</option>
-            </select>
-          </div>
+      <form method="GET" id="filterForm" class="row g-3">
+        <!-- Year -->
+        <div class="col-md-3">
+          <label class="form-label">Year</label>
+          <select name="year" class="form-select" required onchange="this.form.submit()">
+            <option value="" disabled <?= $year==''?'selected':'' ?>>Select</option>
+            <option value="E1" <?= ($year=="E1")?'selected':'' ?>>E1</option>
+            <option value="E2" <?= ($year=="E2")?'selected':'' ?>>E2</option>
+            <option value="E3" <?= ($year=="E3")?'selected':'' ?>>E3</option>
+            <option value="E4" <?= ($year=="E4")?'selected':'' ?>>E4</option>
+          </select>
+        </div>
 
-          <!-- Section -->
-          <div class="col-md-6">
-            <label class="form-label">Section</label>
-            <select name="section" class="form-select" onchange="autoSubmit()">
-              <option value="">All Sections</option>
-              <option value="1" <?= ($section=="1")?'selected':'' ?>>1</option>
-              <option value="2" <?= ($section=="2")?'selected':'' ?>>2</option>
-              <option value="3" <?= ($section=="3")?'selected':'' ?>>3</option>
-              <option value="4" <?= ($section=="4")?'selected':'' ?>>4</option>
-              <option value="5" <?= ($section=="5")?'selected':'' ?>>5</option>
-              <option value="6" <?= ($section=="6")?'selected':'' ?>>6</option>
-            </select>
-          </div>
+        <!-- Academic Year -->
+        <div class="col-md-3">
+          <label class="form-label">Academic Year</label>
+          <select name="ay" class="form-select" required onchange="this.form.submit()">
+            <option value="" disabled <?= $academicYear==''?'selected':'' ?>>Select</option>
+            <option value="2025-26" <?= ($academicYear=="2025-26")?'selected':'' ?>>2025-26</option>
+            <option value="2024-25" <?= ($academicYear=="2024-25")?'selected':'' ?>>2024-25</option>
+          </select>
+        </div>
+
+        <!-- Month -->
+        <div class="col-md-3">
+          <label class="form-label">Month/Test</label>
+          <select name="month" class="form-select" required onchange="this.form.submit()">
+            <option value="" disabled <?= $month==''?'selected':'' ?>>Select</option>
+            <option value="MT-1" <?= ($month=="MT-1")?'selected':'' ?>>MT-1</option>
+            <option value="MT-2" <?= ($month=="MT-2")?'selected':'' ?>>MT-2</option>
+            <option value="MT-3" <?= ($month=="MT-3")?'selected':'' ?>>MT-3</option>
+          </select>
+        </div>
+
+        <!-- Percentage -->
+        <div class="col-md-3">
+          <label class="form-label">Below %</label>
+          <select name="percent" class="form-select" onchange="this.form.submit()">
+            <option value="" <?= $percentFilter==''?'selected':'' ?>>Select</option>
+            <option value="65" <?= ($percentFilter=="65")?'selected':'' ?>>65%</option>
+            <option value="75" <?= ($percentFilter=="75")?'selected':'' ?>>75%</option>
+            <option value="85" <?= ($percentFilter=="85")?'selected':'' ?>>85%</option>
+          </select>
         </div>
       </form>
     </div>
   </div>
 
-  <?php if($result): ?>
-  <div class="card">
-    <div class="card-body">
-      <h5>Attendance Results</h5>
-      <?php if($summaryPercent !== null): ?>
-        <div class="alert alert-info">
-          <strong>Filtered Attendance %:</strong> <?= $summaryPercent ?>
-        </div>
-      <?php endif; ?>
+  <?php if($dept && $year && $academicYear && $month): ?>
+    <p class="text-center fw-bold fs-5 mt-3">
+      Overall Department Average: <?= $deptAvg; ?>%
+    </p>
 
-      <?php if($overallDeptPercent !== null): ?>
-        <div class="alert alert-success">
-          <strong>Overall Department Attendance %:</strong> <?= $overallDeptPercent ?>
-        </div>
-      <?php endif; ?>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="text-center"><?= htmlspecialchars($year) ?> - Attendance by Section</h5>
+        <canvas id="sectionChart" style="width:600px; height:400px; margin:auto; display:block;"></canvas>
+      </div>
     </div>
-  </div>
+
+    <script>
+      const ctx = document.getElementById('sectionChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [<?php foreach($sectionData as $sec => $val) echo "'".$sec."',"; ?>],
+          datasets: [{
+            label: 'Attendance %',
+            data: [<?php foreach($sectionData as $sec => $val) echo $val.","; ?>],
+            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
+        }
+      });
+    </script>
   <?php endif; ?>
 </div>
 </body>

@@ -145,7 +145,8 @@ $conn->close();
 <body class="bg-light">
  
   <div class="portal-header">
-    <h1>Attendance Management System</h1>
+    <h1>Rajiv Gandhi University of Knowledge Technologies Nuzvid</h1>
+    <h2>Attendance Management System</h2>
     <p class="mb-0">Efficient | Reliable | Academic Excellence</p>
   </div>
 <div class="container mt-5">

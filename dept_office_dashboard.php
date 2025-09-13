@@ -37,156 +37,171 @@ $total_students = ($result3) ? $result3->fetch_assoc()['total_students'] : 0;
 $conn->close();
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dept Office Dashboard</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-<style>
-   .container{
-    text-align: center;
-   }
-   .btn{
-    float: right;
-   }
-   </style>
-    
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dept Office Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; }
+    .header { text-align: center; margin: 30px 0; }
+    .header h1 { font-weight: bold; color: #333; }
+    .header p { font-size: 1.1rem; color: #666; }
+    .logout-btn { position: absolute; top: 20px; right: 20px; }
+    .card { 
+      border-radius: 15px; 
+      transition: transform 0.2s, box-shadow 0.2s; 
+    }
+    .card:hover { 
+      transform: translateY(-5px); 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+    }
+    .card-body i { font-size: 2.5rem; }
+  </style>
 </head>
-<body class="bg-light">
-<br><div>
-        <a href='index.php' class="btn btn-primary" onclick="return hi()">Logout</a>
-        <script>
-            function hi(){
-                if(confirm("Logging out! Are you sure?")){
-                 window.location.href = "index.php";
-                }else{
-                    return false;
-                }
-            }
-            </script>
-    </div>
-<div class="container">
-    <!-- Header -->
-<div class="header">
-    <div>
-        <h1 class="fw-bold">Department Office Dashboard</h1>
-        <p class="text-muted">Department: <strong><?php echo htmlspecialchars($dept); ?></strong></p>
-    </div>
-    
+<body>
+<br>
+
+<div class="position-relative mb-3 text-center">
+
+  <!-- Centered Title -->
+  <div>
+    <h1>Attendance Management System</h1>
+    <h2>Department Office Dashboard</h2>
+    <p class="text-muted">
+      Department: <strong><?php echo htmlspecialchars($dept); ?></strong>
+    </p>
+  </div>
+
+  
+  <div class="position-absolute top-0 end-0">
+    <a href="index.php" onclick="return hi()" class="btn btn-primary">
+      Logout
+    </a>
+  </div>
 </div>
 
-    
 
-    <div class="row g-4 justify-content-center">
 
-    <!-- Total Subjects -->
+<div class="container">
+  <div class="row g-4 justify-content-center">
+
+    <!-- Subjects -->
     <div class="col-md-3">
+      <a href="all_subjects_info.php" class="text-decoration-none">
         <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <i class="bi bi-journal-text fs-1 text-primary mb-3"></i>
-                <h3 class="card-title fw-bold"><?php echo $total_subjects; ?></h3>
-                <p class="card-text text-muted">Total Subjects</p>
-            </div>
+          <div class="card-body">
+            <i class="bi bi-journal-text text-primary mb-3"></i>
+            <h3 class="fw-bold"><?php echo $total_subjects; ?></h3>
+            <p class="text-muted">View Subjects</p>
+          </div>
         </div>
+      </a>
     </div>
 
-    <!-- Total Faculty -->
+    <!-- Faculty -->
     <div class="col-md-3">
+      <a href="all_faculty_info.php" class="text-decoration-none">
         <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <i class="bi bi-people fs-1 text-warning mb-3"></i>
-                <h3 class="card-title fw-bold"><?php echo $total_faculty; ?></h3>
-                <p class="card-text text-muted">Total Faculty</p>
-            </div>
+          <div class="card-body">
+            <i class="bi bi-people text-warning mb-3"></i>
+            <h3 class="fw-bold"><?php echo $total_faculty; ?></h3>
+            <p class="text-muted">View Faculty</p>
+          </div>
         </div>
+      </a>
     </div>
 
-    <!-- Total Students -->
+    <!-- Students -->
     <div class="col-md-3">
-        <a href="all_students_info.php" class="text-decoration-none">
+      <a href="all_students_info.php" class="text-decoration-none">
         <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <i class="bi bi-mortarboard fs-1 text-success mb-3"></i>
-                <h3 class="card-title fw-bold"><?php echo $total_students; ?></h3>
-                <p class="card-text text-muted">View the students</p>
-            </div>
+          <div class="card-body">
+            <i class="bi bi-mortarboard text-success mb-3"></i>
+            <h3 class="fw-bold"><?php echo $total_students; ?></h3>
+            <p class="text-muted">View Students</p>
+          </div>
         </div>
+      </a>
     </div>
-   
+
     <!-- Register Subject -->
     <div class="col-md-3">
-        <a href="subject_register.php" class="text-decoration-none">
-            <div class="card text-center shadow-sm h-100">
-                <div class="card-body">
-                    <i class="bi bi-plus-circle fs-1 text-success mb-3"></i>
-                    <h3 class="card-title fw-bold">Register</h3>
-                    <p class="card-text text-muted">Subject</p>
-                </div>
-            </div>
-        </a>
-    </div>
-   
-   <!-- Modify the registered Subject -->
-    <div class="col-md-3">
-        <a href="modify_registered_subject.php" class="text-decoration-none">
-            <div class="card text-center shadow-sm h-100">
-                <div class="card-body">
-                    <i class="bi bi-plus-circle fs-1 text-success mb-3"></i>
-                    <h3 class="card-title fw-bold">Modify</h3>
-                    <p class="card-text text-muted">The Subject</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="register.php" class="text-decoration-none">
-            <div class="card text-center shadow-sm h-100">
-                <div class="card-body">
-                    <i class="bi bi-plus-circle fs-1 text-success mb-3"></i>
-                    <h3 class="card-title fw-bold">Register</h3>
-                    <p class="card-text text-muted">Students/Faculty</p>
-                </div>
-            </div>
-        </a>
-    </div>
-    
-    <!-- Manage Faculty -->
-    <div class="col-md-3">
-        <a href="faculty_allotment_history.php" class="text-decoration-none">
-            <div class="card text-center shadow-sm h-100">
-                <div class="card-body">
-                    <i class="bi bi-person-lines-fill fs-1 text-secondary mb-3"></i>
-                    <h3 class="card-title fw-bold">Faculty Allotment</h3>
-                    <p class="card-text text-muted"> History</p>
-                </div>
-            </div>
-        </a>
+      <a href="subject_register.php" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <i class="bi bi-plus-circle text-success mb-3"></i>
+            <h3 class="fw-bold">Register</h3>
+            <p class="text-muted">Subject</p>
+          </div>
+        </div>
+      </a>
     </div>
 
-     <!-- Manage Attendance -->
+    <!-- Modify Subject -->
     <div class="col-md-3">
-        <a href="manage_attendance.php" class="text-decoration-none">
-            <div class="card text-center shadow-sm h-100">
-                <div class="card-body">
-                    <i class="bi bi-person-lines-fill fs-1 text-secondary mb-3"></i>
-                    <h3 class="card-title fw-bold">Manage </h3>
-                    <p class="card-text text-muted">No.of Working ays</p>
-                </div>
-            </div>
-        </a>
+      <a href="modify_registered_subject.php" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <i class="bi bi-pencil-square text-info mb-3"></i>
+            <h3 class="fw-bold">Modify</h3>
+            <p class="text-muted">Subjects</p>
+          </div>
+        </div>
+      </a>
     </div>
-  
-    
 
+    <!-- Register People -->
+    <div class="col-md-3">
+      <a href="register.php" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <i class="bi bi-person-plus text-dark mb-3"></i>
+            <h3 class="fw-bold">Register</h3>
+            <p class="text-muted">Faculty / Students </p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Faculty Allotment -->
+    <div class="col-md-3">
+      <a href="faculty_allotment_history.php" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <i class="bi bi-person-lines-fill text-secondary mb-3"></i>
+            <h3 class="fw-bold">Faculty Allotment</h3>
+            <p class="text-muted">History</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Download Attendance -->
+    <div class="col-md-3">
+      <a href="download_attendance_excel.php" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <i class="bi bi-file-earmark-excel text-success mb-3"></i>
+            <h3 class="fw-bold">Download</h3>
+            <p class="text-muted">Attendance Excel</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+  </div>
 </div>
 
-</div>
-
+<script>
+  function hi(){
+    return confirm("Logging out! Are you sure?");
+  }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

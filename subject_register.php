@@ -1,10 +1,18 @@
 <?php
 session_start();
+
+// autoload PhpSpreadsheet
+require 'vendor/autoload.php';
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+// Check login
 if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
-    die("Access Denied. This action is only allowed for Department Office users.");
+    die("Access Denied. Only department office users can upload subjects.");
 }
 
-// Map department codes to friendly names
+include 'db_connect.php';
+
+// Map dept names
 $dept_names = [
     'CSE' => 'Computer Science & Engineering',
     'ECE' => 'Electronics & Communication Engineering',
@@ -15,104 +23,150 @@ $dept_names = [
     'CHEMICAL' => 'Chemical Engineering'
 ];
 
-$dept_code = $_SESSION['dept'];
-$dept_full = $dept_names[$dept_code] ?? $dept_code;
+$userID = $_SESSION['userID'];
+// Get dept of logged in user
+$stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username = ?");
+$stmt->bind_param("s", $userID);
+$stmt->execute();
+$stmt->bind_result($dept);
+$stmt->fetch();
+$stmt->close();
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "attendance_management_system";
+$dept_full = $dept_names[$dept] ?? $dept;
 
-$conn = new mysqli($host, $user, $pass, $db);
-if($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+// Handle Subjects Excel Upload
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['upload_subject_excel'])) {
+    if (isset($_FILES['subject_excel']) && $_FILES['subject_excel']['error'] == 0) {
+        $filePath = $_FILES['subject_excel']['tmp_name'];
 
-require 'vendor/autoload.php'; // PhpSpreadsheet
-use PhpOffice\PhpSpreadsheet\IOFactory;
+        try {
+            $spreadsheet = IOFactory::load($filePath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
 
-$success = "";
-$error = "";
+            $inserted = 0;
+            $updated  = 0;
+            $skipped  = 0;
 
-// Handle Excel upload
-if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['excel_file'])){
-    $file_mime = mime_content_type($_FILES['excel_file']['tmp_name']);
-    $allowed_mimes = [
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
-
-    if(in_array($file_mime, $allowed_mimes)){
-        $spreadsheet = IOFactory::load($_FILES['excel_file']['tmp_name']);
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray();
-
-        // Skip header row (assuming first row is column names)
-        array_shift($rows);
-
-        $inserted = 0;
-        $failed = 0;
-
-        foreach($rows as $row){
-            list($s_no,$dept, $subject_code, $subject_name, $credits, $academic_year, $semester, $date_time, $faculty_name, $faculty_id, $year, $no_of_working_days,$section) = $row;
-
-            if(empty($subject_code)) continue;
-
+            // SQL query with ON DUPLICATE KEY UPDATE
             $sql = "INSERT INTO subjects 
-                (dept, subject_code, subject_name, credits, academic_year, semester, date_time, faculty_name, faculty_id, year, no_of_working_days,section) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+                        (dept, subject_code, subject_name, credits, academic_year, semester, date_time, faculty_name, faculty_id, year, section) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE 
+                        subject_name = VALUES(subject_name),
+                        credits = VALUES(credits),
+                        academic_year = VALUES(academic_year),
+                        semester = VALUES(semester),
+                        date_time = VALUES(date_time),
+                        faculty_name = VALUES(faculty_name),
+                        year = VALUES(year),
+                        section = VALUES(section)";
+
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssissssisii", 
-                $dept, $subject_code, $subject_name, $credits, 
-                $academic_year, $semester, $date_time, $faculty_name, 
-                $faculty_id, $year, $no_of_working_days,$section
-            );
 
-            if($stmt->execute()){
-                $inserted++;
-            } else {
-                $failed++;
+            // Skip header row
+            for ($i = 1; $i < count($rows); $i++) {
+                list($s_no, $deptExcel, $subject_code, $subject_name, $credits, 
+                     $academic_year, $semester, $date_time, $faculty_name, 
+                     $faculty_id, $year, $section) = $rows[$i];
+
+                // Trim all inputs
+                $subject_code = trim($subject_code);
+                $faculty_id   = trim($faculty_id);
+                $section      = trim($section);
+
+                if (empty($subject_code) || empty($faculty_id)) { 
+                    $skipped++; 
+                    continue; 
+                }
+
+                // Always force dept from session
+                $deptExcel = $dept;
+
+                // Bind values
+                $stmt->bind_param(
+                    "sssisissssi",   // year treated as string
+                    $deptExcel, 
+                    $subject_code, 
+                    $subject_name, 
+                    $credits, 
+                    $academic_year, 
+                    $semester, 
+                    $date_time, 
+                    $faculty_name, 
+                    $faculty_id, 
+                    $year, 
+                    $section
+                );
+
+                if ($stmt->execute()) {
+                    if ($stmt->affected_rows == 1) {
+                        $inserted++;
+                    } elseif ($stmt->affected_rows == 2) {
+                        $updated++;
+                    } else {
+                        $skipped++;
+                    }
+                } else {
+                    error_log("MySQL Error: " . $stmt->error);
+                    $skipped++;
+                }
             }
-            $stmt->close();
-        }
 
-        $success = "Upload completed. Inserted: $inserted | Failed: $failed";
+            $stmt->close();
+
+            echo "<script>
+                    alert('Subjects Upload Completed! Inserted: $inserted | Updated: $updated | Skipped: $skipped');
+                    window.location.href='dept_office_dashboard.php';
+                  </script>";
+            exit;
+
+        } catch (Exception $e) {
+            echo "<script>alert('Error Reading Excel: " . $e->getMessage() . "');</script>";
+        }
     } else {
-        $error = "Invalid file type. Please upload an Excel file (.xls or .xlsx).";
+        echo "<script>alert('Please upload a valid Excel file!');</script>";
     }
 }
 
 $conn->close();
 ?>
 
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dept Office - Upload Subjects Excel</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Subjects Excel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
     body { background-color: #f8f9fa; }
     .card { border-radius: 15px; }
-</style>
+  </style>
 </head>
 <body>
 <div class="card shadow-lg p-4 mx-auto mt-5" style="max-width: 600px;">
     <h2 class="text-center mb-3">Upload Subjects Excel</h2>
-    <p class="text-center text-muted">Department: <strong><?php echo htmlspecialchars($dept_full); ?></strong></p>
-
-    <?php if($success) echo "<div class='alert alert-success text-center'>$success</div>"; ?>
-    <?php if($error) echo "<div class='alert alert-danger text-center'>$error</div>"; ?>
+    <p class="text-center text-muted">
+        Department: <strong><?php echo htmlspecialchars($dept_full); ?></strong>
+    </p>
 
     <form method="POST" enctype="multipart/form-data">
         <div class="mb-3">
             <label class="form-label">Choose Excel File</label>
-            <input type="file" name="excel_file" class="form-control" accept=".xls,.xlsx" required>
+            <input type="file" name="subject_excel" class="form-control" accept=".xls,.xlsx" required>
         </div>
-        <button type="submit" class="btn btn-success w-100">Upload</button>
+        s_no|dept|subject_code|subject_name|credits|academic_year|semester|date_time|faculty_name|faculty_id|year|section
+
+        <button type="submit" name="upload_subject_excel" class="btn btn-success w-100">
+            Upload
+        </button>
     </form>
 
     <div class="text-center mt-3">
-        <a href="dept_office_dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
+        <a href="dept_office_dashboard.php" class="btn btn-primary">Back to Dashboard</a>
     </div>
 </div>
 </body>
