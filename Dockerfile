@@ -1,26 +1,35 @@
-# Use official PHP image with Composer
-FROM php:8.2-cli
-
-# Install required PHP extensions
-RUN docker-php-ext-install mysqli
-
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Use official PHP image with FPM
+FROM php:8.2-fpm
 
 # Set working directory
-WORKDIR /app
+WORKDIR /var/www/html
 
-# Copy composer files first (for better caching)
-COPY composer.json composer.lock ./
+# Install system dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    curl \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    libzip-dev \
+    zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo_mysql mbstring zip opcache \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy the rest of the project
+# Copy project files
 COPY . .
 
-# Expose the Render port (Render injects $PORT)
-EXPOSE 10000
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Start PHP built-in server
-CMD ["sh", "-c", "php -S 0.0.0.0:$PORT"]
+# Expose port 9000 for PHP-FPM
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
