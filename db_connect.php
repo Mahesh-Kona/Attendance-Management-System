@@ -1,18 +1,13 @@
 <?php
-// Load environment variables from Render
-$host = getenv("MYSQLHOST");
-$port = getenv("MYSQLPORT");
-$user = getenv("MYSQLUSER");
-$password = getenv("MYSQLPASSWORD");
-$database = getenv("MYSQLDATABASE");
+$mysqli = new mysqli(
+    getenv('DB_HOST'),
+    getenv('DB_USERNAME'),
+    getenv('DB_PASSWORD'),
+    getenv('DB_DATABASE'),
+    getenv('DB_PORT')
+);
 
-// Create connection
-$conn = new mysqli($host, $user, $password, $database, $port);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-} else {
-    echo "✅ Connected successfully to MySQL database!";
+if ($mysqli->connect_error) {
+    die("Connection failed: " . $mysqli->connect_error);
 }
-?>
+echo "Connected successfully!";
