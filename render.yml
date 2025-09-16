@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: attendance-management-system
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    startCommand: php -S 0.0.0.0:$PORT -t /var/www/html
+    envVars:
+      - key: DB_HOST
+        value: tramway.proxy.rlwy.net
+      - key: DB_PORT
+        value: 56073
+      - key: DB_DATABASE
+        value: railway
+      - key: DB_USERNAME
+        value: root
+      - key: zSVPtWkXahkdbbhKLYQqZpTjbDhMKteL
+        value: YOUR_PASSWORD
