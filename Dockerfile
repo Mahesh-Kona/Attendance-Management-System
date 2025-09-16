@@ -1,27 +1,26 @@
-# Use official PHP with Apache
-FROM php:8.2-apache
+# Use official PHP image with Composer
+FROM php:8.2-cli
 
 # Install required PHP extensions
-RUN docker-php-ext-install mysqli pdo pdo_mysql
-
-# Enable Apache mod_rewrite (optional but useful for clean URLs)
-RUN a2enmod rewrite
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy project files into container
-COPY . /var/www/html/
+RUN docker-php-ext-install mysqli
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader || true
+# Set working directory
+WORKDIR /app
 
-# Expose port 80
-EXPOSE 80
+# Copy composer files first (for better caching)
+COPY composer.json composer.lock ./
 
-# Start Apache server
-CMD ["apache2-foreground"]
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader
 
+# Copy the rest of the project
+COPY . .
+
+# Expose the Render port (Render injects $PORT)
+EXPOSE 10000
+
+# Start PHP built-in server
+CMD ["sh", "-c", "php -S 0.0.0.0:$PORT"]
