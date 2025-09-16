@@ -29,8 +29,8 @@ RUN composer install --no-dev --optimize-autoloader
 # Copy the rest of the project
 COPY . .
 
-# Expose Render port (Render injects $PORT automatically)
+# Expose the port Render will use
 EXPOSE 10000
 
-# Start PHP built-in server
+# Start PHP built-in server (Render injects $PORT automatically)
 CMD ["sh", "-c", "php -S 0.0.0.0:$PORT -t /var/www/html"]
