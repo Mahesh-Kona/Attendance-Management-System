@@ -22,13 +22,14 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy project files
-COPY . .
-
-# Install PHP dependencies
+# Copy only composer files first (cache optimization)
+COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader
 
-# Expose port 9000 for PHP-FPM
+# Copy the rest of the project
+COPY . .
+
+# Expose port 9000 (PHP-FPM default)
 EXPOSE 9000
 
 # Start PHP-FPM
