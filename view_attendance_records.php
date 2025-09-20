@@ -6,15 +6,7 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "attendance_management_system";
-
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include "db_connect.php;
 
 // Get query params
 $faculty_id   = $_GET['faculty_id'] ?? '';
@@ -176,3 +168,4 @@ $conn->close();
 
 </body>
 </html>
+
