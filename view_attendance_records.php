@@ -112,8 +112,8 @@ $conn->close();
 <body>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Attendance Management System</h1>
-    <h2 class="flex-grow-1 text-center m-0">Attendance Report</h2>
+    
+    <h1 class="flex-grow-1 text-center m-0">Attendance Report</h1>
     <a href="faculty_dashboard.php" class="btn btn-primary">Dashboard</a>
 </div>
 

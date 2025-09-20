@@ -68,7 +68,7 @@ $conn->close();
 <div class="position-relative mb-3 text-center">
 
   <!-- Centered Title -->
-  <div>
+  <!-- <div>
     <h1>Attendance Management System</h1>
     <h2>Department Office Dashboard</h2>
     <p class="text-muted">
@@ -82,8 +82,19 @@ $conn->close();
       Logout
     </a>
   </div>
-</div>
-
+</div> -->
+<!-- Header -->
+    <div class="d-flex align-items-center justify-content-center position-relative mb-4">
+        <div class="text-center">
+            ` <h1>Department Office Dashboard</h1>
+            <p class="text-muted">
+      Department: <strong><?php echo htmlspecialchars($dept); ?></strong>
+    </p>
+        </div>
+        <a href="index.php" class="btn btn-primary position-absolute end-0" onclick=hi()>
+            Logout
+        </a>
+    </div>
 
 
 <div class="container">

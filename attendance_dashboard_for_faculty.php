@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $section       = $_POST['section'];
     $dept          = $_POST['dept'];
     $period        = (int)$_POST['period']; 
-    $month         = $_POST['month']; // ✅ new month/test input
+    $month         = $_POST['month']; // ✅ now comes from inside form
 
     foreach ($_POST['student_name'] as $student_id => $student_name) {
         $year_db       = $_POST['year'][$student_id];
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $period,        // i
             $dept,          // s
             $semester,      // i
-            $month          // s ✅
+            $month          // s ✅ now works
         );
 
         if (!$stmt->execute()) {
@@ -139,55 +139,56 @@ $conn->close();
 
     <!-- Header -->
     <div class="header">
-        <h1>Attendance Management System</h1>
-        <h2>Take Attendance</h2>
+        
+        <h1>Attendance Dashboard</h1>
         <a href="faculty_dashboard.php" class="btn btn-primary">Dashboard</a>
     </div>
 
-    <!-- Faculty/Class Details -->
-    <div class="card">
-        <h5><strong>Class & Faculty Details</strong></h5>
-        <div class="row">
-            <!-- Left column (Class details) -->
-            <div class="col-md-6">
-                <p>
-                   <b>Subject:</b> <?php echo htmlspecialchars($subject_name); ?> (<?php echo htmlspecialchars($subject_code); ?>)<br>
-                   <b>Year:</b> <?php echo htmlspecialchars($year); ?><br>
-                   <b>Semester:</b> <?php echo htmlspecialchars(!empty($students_data) ? $students_data[0]['semester'] : 'N/A'); ?><br>
-                   <b>Department:</b> <?php echo htmlspecialchars($subject_dept); ?><br>
-                   <b>Section:</b> <?php echo htmlspecialchars($section); ?><br>
-                   <b>Academic Year:</b> <?php echo htmlspecialchars(!empty($students_data) ? $students_data[0]['academic_year'] : 'N/A'); ?><br>
-                   <b>Date:</b> <?php echo date("d-m-Y H:i:s"); ?><br>
-                </p>
-            </div>
+    <!-- Attendance Form (now includes period + month inputs) -->
+    <form method="POST">
+        <!-- Faculty/Class Details -->
+        <div class="card">
+            <!-- <h5><strong><center>Class & Faculty Details</strong></center></h5><br> -->
+            <div class="row">
+                <!-- Left column (Class details) -->
+                <div class="col-md-6">
+                    <p>
+                       <b>Subject:</b> <?php echo htmlspecialchars($subject_name); ?> (<?php echo htmlspecialchars($subject_code); ?>)<br>
+                       <b>Year:</b> <?php echo htmlspecialchars($year); ?><br>
+                       <b>Semester:</b> <?php echo htmlspecialchars(!empty($students_data) ? $students_data[0]['semester'] : 'N/A'); ?><br>
+                       <b>Department:</b> <?php echo htmlspecialchars($subject_dept); ?><br>
+                       <b>Section:</b> <?php echo htmlspecialchars($section); ?><br>
+                       <b>Academic Year:</b> <?php echo htmlspecialchars(!empty($students_data) ? $students_data[0]['academic_year'] : 'N/A'); ?><br>
+                       <b>Date & Time:</b> <?php echo date("d-m-Y H:i:s"); ?><br>
+                    </p>
+                </div>
 
-            <!-- Right column (Faculty + Inputs) -->
-            <div class="col-md-6">
-                <p>
-                   <b>Faculty Name:</b> <?php echo htmlspecialchars($faculty_name); ?><br><br>
+                <!-- Right column (Faculty + Inputs) -->
+                <div class="col-md-6">
+                    <p>
+                       <b>Faculty Name:</b> <?php echo htmlspecialchars($faculty_name); ?><br>
+        
+                       <!-- Period -->
+                       <b>Period:</b><br>
+                       <input type="number" name="period" min="1" max="7" placeholder="Enter period" 
+                              class="form-control mb-3" style="width: 150px;" required>
 
-                   <!-- Period -->
-                   <b>Period:</b><br>
-                   <input type="number" name="period" min="1" max="7" placeholder="Enter period" 
-                          class="form-control mb-3" style="width: 150px;" required>
-
-                   <!-- Month/Test dropdown -->
-                   <b>Month/Test:</b><br>
-                   <select name="month" class="form-select" style="width: 160px;" required>
-                       <option value="">Select</option>
-                       <option value="MT-1">MT-1</option>
-                       <option value="MT-2">MT-2</option>
-                       <option value="MT-3">MT-3</option>
-                   </select>
-                </p>
+                       <!-- Month/Test dropdown -->
+                       <b>Month/Test:</b><br>
+                       <select name="month" class="form-select" style="width: 160px;" required>
+                           <option value="">Select</option>
+                           <option value="MT-1">MT-1</option>
+                           <option value="MT-2">MT-2</option>
+                           <option value="MT-3">MT-3</option>
+                       </select>
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Attendance Table -->
-    <div class="card">
-        <h5><strong>Mark Attendance</strong></h5>
-        <form method="POST">
+        <!-- Attendance Table -->
+        <div class="card">
+            <h5><strong>Mark Attendance</strong></h5>
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
@@ -228,8 +229,8 @@ $conn->close();
             </table>
 
             <button type="submit" class="btn btn-success">Save Attendance</button>
-        </form>
-    </div>
+        </div>
+    </form>
 
 </body>
 </html>

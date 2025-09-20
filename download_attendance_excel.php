@@ -40,30 +40,24 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
         min-height: 100vh;
     }
     h1{
-        margin-left: 300px;
+        margin-left: 200px;
     }
    .header-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* spread out items */
-    padding: 10px 30px; /* add spacing inside */
+    justify-content: space-between;
+    padding: 10px 30px;
 }
-
 .header-bar a {
-    margin-left: 20px; /* extra gap if needed */
+    margin-left: 20px;
     padding: 6px 14px;
     border-radius: 6px;
-   
     color: #fff;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
     transition: background 0.3s;
 }
-.header-bar a:hover {
-    background: #2980b9;
-}
-
     .container {
         background: #ffffff;
         padding: 40px;
@@ -98,28 +92,18 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
         padding: 12px;
         border: none;
         border-radius: 6px;
-        background: #3498db;
-        color: #fff;
         font-size: 16px;
         font-weight: bold;
         cursor: pointer;
         transition: background 0.3s;
     }
-    button:hover {
-        background: #2980b9;
-    }
-    btn{
-        right: 20px;
-    }
 </style>
 </head>
 <body>
-
  <div class="header-bar">
     <h1>Department of <?php echo htmlspecialchars($dept); ?></h1>
     <a href="dept_office_dashboard.php" class='btn btn-primary'>Dashboard</a>
 </div>
-
 
     <!-- Form -->
     <div class="container">
@@ -134,31 +118,37 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
                 <option value="E4">E4</option>
             </select>
 
-            <label>Select Month Test:</label>
+            <label>Select Month:</label>
             <select name="month" required>
                 <option value="">--Select--</option>
+                <option value="All">Full Semester</option>
                 <option value="MT-1">MT-1</option>
                 <option value="MT-2">MT-2</option>
                 <option value="MT-3">MT-3</option>
             </select>
 
-            <button type="submit">Download</button>
+            <button type="submit" class='btn btn-primary'>Download</button>
         </form>
     </div>
-
 </body>
 </html>
-
     <?php
     exit;
 }
+
 $year = $_POST['year'];
 $month = $_POST['month'];
 
 // Fetch semester and academic_year
-$res = $conn->query("SELECT DISTINCT semester, academic_year 
-                     FROM attendance 
-                     WHERE dept='$dept' AND year='$year' AND month='$month' LIMIT 1");
+if ($month === "All") {
+    $res = $conn->query("SELECT DISTINCT semester, academic_year 
+                         FROM attendance 
+                         WHERE dept='$dept' AND year='$year' LIMIT 1");
+} else {
+    $res = $conn->query("SELECT DISTINCT semester, academic_year 
+                         FROM attendance 
+                         WHERE dept='$dept' AND year='$year' AND month='$month' LIMIT 1");
+}
 $row = $res->fetch_assoc();
 $semester = $row['semester'] ?? 'Sem1';
 $academic_year = $row['academic_year'] ?? date("Y");
@@ -218,7 +208,7 @@ foreach($subjects as $code=>$name){
 // % column
 $percentColLetter = Coordinate::stringFromColumnIndex($colIndex);
 $consolidatedSheet->mergeCells("{$percentColLetter}2:{$percentColLetter}3");
-$consolidatedSheet->setCellValue("{$percentColLetter}2","Attendace%");
+$consolidatedSheet->setCellValue("{$percentColLetter}2","Attendance%");
 
 // Apply header style
 $consolidatedSheet->getStyle("A2:{$percentColLetter}3")->applyFromArray($headerStyle);
@@ -233,14 +223,24 @@ while($stu = $students->fetch_assoc()){
 
     $colIndex=3; $totalConducted=0; $totalAttended=0;
     foreach($subjects as $code=>$name){
-        $q = $conn->query("SELECT COUNT(*) AS conducted, 
-                                  SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) AS attended
-                            FROM attendance
-                            WHERE dept='$dept' AND year='$year' 
-                              AND semester='$semester'
-                              AND month='$month'
-                              AND subject_code='$code' 
-                              AND student_id='$studentId'");
+        if ($month === "All") {
+            $q = $conn->query("SELECT COUNT(*) AS conducted, 
+                                      SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) AS attended
+                                FROM attendance
+                                WHERE dept='$dept' AND year='$year' 
+                                  AND semester='$semester'
+                                  AND subject_code='$code' 
+                                  AND student_id='$studentId'");
+        } else {
+            $q = $conn->query("SELECT COUNT(*) AS conducted, 
+                                      SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) AS attended
+                                FROM attendance
+                                WHERE dept='$dept' AND year='$year' 
+                                  AND semester='$semester'
+                                  AND month='$month'
+                                  AND subject_code='$code' 
+                                  AND student_id='$studentId'");
+        }
         $att = $q->fetch_assoc();
         $conducted = $att['conducted'] ?? 0;
         $attended = $att['attended'] ?? 0;
@@ -319,14 +319,24 @@ while($sec = $sections->fetch_assoc()){
 
         $colIndex=3; $totalConducted=0; $totalAttended=0;
         foreach($subjects as $code=>$name){
-            $q = $conn->query("SELECT COUNT(*) AS conducted, 
-                                      SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) AS attended
-                                FROM attendance
-                                WHERE dept='$dept' AND year='$year' 
-                                  AND semester='$semester'
-                                  AND month='$month'
-                                  AND subject_code='$code' 
-                                  AND student_id='$studentId'");
+            if ($month === "All") {
+                $q = $conn->query("SELECT COUNT(*) AS conducted, 
+                                          SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) AS attended
+                                    FROM attendance
+                                    WHERE dept='$dept' AND year='$year' 
+                                      AND semester='$semester'
+                                      AND subject_code='$code' 
+                                      AND student_id='$studentId'");
+            } else {
+                $q = $conn->query("SELECT COUNT(*) AS conducted, 
+                                          SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) AS attended
+                                    FROM attendance
+                                    WHERE dept='$dept' AND year='$year' 
+                                      AND semester='$semester'
+                                      AND month='$month'
+                                      AND subject_code='$code' 
+                                      AND student_id='$studentId'");
+            }
             $att = $q->fetch_assoc();
             $conducted = $att['conducted'] ?? 0;
             $attended = $att['attended'] ?? 0;
@@ -350,12 +360,16 @@ while($sec = $sections->fetch_assoc()){
 /* ---------------- Column Widths ---------------- */
 foreach ($spreadsheet->getAllSheets() as $sheet) {
     foreach (range('A', $sheet->getHighestColumn()) as $col) {
-        $sheet->getColumnDimension($col)->setWidth(20); // clean look
+        $sheet->getColumnDimension($col)->setWidth(20);
     }
 }
 
 // File name
-$fileName = "{$year}_{$semester}_AY{$academic_year}_Attendance_Sheet.xlsx";
+if ($month === "All") {
+    $fileName = "{$year}_Sem{$semester}_AY{$academic_year}_Attendance_FullSemester.xlsx";
+} else {
+    $fileName = "{$year}_{$semester}_AY{$academic_year}_{$month}_Attendance.xlsx";
+}
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header("Content-Disposition: attachment;filename=$fileName");

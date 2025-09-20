@@ -184,7 +184,7 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
    
   </div>
   
-  <a href="index.php" class="btn btn-primary position-absolute end-0">
+  <a href="index.php" class="btn btn-primary position-absolute end-0" onclick="hi()">
     Logout
   </a>
 </div>
@@ -194,63 +194,61 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
   <div class="card shadow-sm mb-3">
   <div class="card-body">
     <form method="GET" id="filterForm" class="row g-2 align-items-center">
+<!-- Year -->
+<div class="col-md-2">
+  <label class="form-label">Year</label>
+  <select name="year" class="form-select" onchange="this.form.submit()">
+    <option value="" <?= $filterYear==''?'selected':'' ?>>All</option>
+    <option value="E1" <?= ($filterYear=="E1")?'selected':'' ?>>E1</option>
+    <option value="E2" <?= ($filterYear=="E2")?'selected':'' ?>>E2</option>
+    <option value="E3" <?= ($filterYear=="E3")?'selected':'' ?>>E3</option>
+    <option value="E4" <?= ($filterYear=="E4")?'selected':'' ?>>E4</option>
+  </select>
+</div>
 
-      <!-- Year -->
-      <div class="col-md-2">
-        <label class="form-label">Year</label>
-        <select name="year" class="form-select" onchange="this.form.submit()">
-          <option value="" disabled <?= $filterYear==''?'selected':'' ?>>Select</option>
-          <option value="E1" <?= ($filterYear=="E1")?'selected':'' ?>>E1</option>
-          <option value="E2" <?= ($filterYear=="E2")?'selected':'' ?>>E2</option>
-          <option value="E3" <?= ($filterYear=="E3")?'selected':'' ?>>E3</option>
-          <option value="E4" <?= ($filterYear=="E4")?'selected':'' ?>>E4</option>
-        </select>
-      </div>
+<!-- Branch -->
+<div class="col-md-2">
+  <label class="form-label">Branch</label>
+  <select name="branch" class="form-select" onchange="this.form.submit()">
+    <option value="" <?= $filterBranch==''?'selected':'' ?>>All</option>
+    <?php foreach($branchMap as $code => $name): ?>
+      <option value="<?= $code ?>" <?= ($filterBranch==$code)?'selected':'' ?>><?= $code ?></option>
+    <?php endforeach; ?>
+  </select>
+</div>
 
-      <!-- Branch -->
-      <div class="col-md-2">
-        <label class="form-label">Branch</label>
-        <select name="branch" class="form-select" onchange="this.form.submit()">
-          <option value="" disabled <?= $filterBranch==''?'selected':'' ?>>Select</option>
-          <?php foreach($branchMap as $code => $name): ?>
-            <option value="<?= $code ?>" <?= ($filterBranch==$code)?'selected':'' ?>><?= $code ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
+<!-- Academic Year (mandatory) -->
+<div class="col-md-3">
+  <label class="form-label">Academic Year</label>
+  <select name="ay" class="form-select" onchange="this.form.submit()">
+    <option value="" disabled <?= $filterAY==''?'selected':'' ?>>Select</option>
+    <option value="2025-26" <?= ($filterAY=="2025-26")?'selected':'' ?>>2025-26</option>
+    <option value="2024-25" <?= ($filterAY=="2024-25")?'selected':'' ?>>2024-25</option>
+  </select>
+</div>
 
-      <!-- Academic Year -->
-      <div class="col-md-3">
-        <label class="form-label">Academic Year</label>
-        <select name="ay" class="form-select" onchange="this.form.submit()">
-          <option value="" disabled <?= $filterAY==''?'selected':'' ?>>Select</option>
-          <option value="2025-26" <?= ($filterAY=="2025-26")?'selected':'' ?>>2025-26</option>
-          <option value="2024-25" <?= ($filterAY=="2024-25")?'selected':'' ?>>2024-25</option>
-          <option value="2023-24" <?= ($filterAY=="2023-24")?'selected':'' ?>>2023-24</option>
-          <option value="2022-23" <?= ($filterAY=="2022-23")?'selected':'' ?>>2022-23</option>
-        </select>
-      </div>
+<!-- Month/Test -->
+<div class="col-md-2">
+  <label class="form-label">Month/Test</label>
+  <select name="month" class="form-select" onchange="this.form.submit()">
+    <option value="" <?= $month==''?'selected':'' ?>>All</option>
+    <option value="MT-1" <?= ($month=="MT-1")?'selected':'' ?>>MT-1</option>
+    <option value="MT-2" <?= ($month=="MT-2")?'selected':'' ?>>MT-2</option>
+    <option value="MT-3" <?= ($month=="MT-3")?'selected':'' ?>>MT-3</option>
+  </select>
+</div>
 
-      <!-- Month/Test -->
-      <div class="col-md-2">
-        <label class="form-label">Month/Test</label>
-        <select name="month" class="form-select" onchange="this.form.submit()">
-          <option value="" disabled <?= $month==''?'selected':'' ?>>Select</option>
-          <option value="MT-1" <?= ($month=="MT-1")?'selected':'' ?>>MT-1</option>
-          <option value="MT-2" <?= ($month=="MT-2")?'selected':'' ?>>MT-2</option>
-          <option value="MT-3" <?= ($month=="MT-3")?'selected':'' ?>>MT-3</option>
-        </select>
-      </div>
+<!-- Percentage -->
+<div class="col-md-3">
+  <label class="form-label">Below %</label>
+  <select name="percent" class="form-select" onchange="this.form.submit()">
+    <option value="" <?= $percentFilter==''?'selected':'' ?>>All</option>
+    <option value="65" <?= ($percentFilter=="65")?'selected':'' ?>>65%</option>
+    <option value="75" <?= ($percentFilter=="75")?'selected':'' ?>>75%</option>
+    <option value="85" <?= ($percentFilter=="85")?'selected':'' ?>>85%</option>
+  </select>
+</div>
 
-      <!-- Percentage -->
-      <div class="col-md-3">
-        <label class="form-label">Below %</label>
-        <select name="percent" class="form-select" onchange="this.form.submit()">
-          <option value="" disabled <?= $percentFilter==''?'selected':'' ?>>Select</option>
-          <option value="65" <?= ($percentFilter=="65")?'selected':'' ?>>65%</option>
-          <option value="75" <?= ($percentFilter=="75")?'selected':'' ?>>75%</option>
-          <option value="85" <?= ($percentFilter=="85")?'selected':'' ?>>85%</option>
-        </select>
-      </div>
 
     </form>
   </div>
@@ -307,5 +305,10 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
   <?php endif; ?>
 
 </div>
+<script>
+function hi(){
+    return confirm("Logging out! Are you sure?");
+}
+  </script>
 </body>
 </html>

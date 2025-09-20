@@ -67,19 +67,18 @@ $sectionData = $allSections;
 </head>
 <body class="bg-light">
 <br>
-<div class="d-flex justify-content-center align-items-center mb-4 position-relative text-center">
-  <div>
-    <h1>Attendance Management System</h1>
-    <h2 class="m-0">Head of the Department, <?= htmlspecialchars($dept); ?></h2>
-  </div>
-  
-  <a href="index.php" class="btn btn-primary position-absolute end-0">
-    Logout
-  </a>
-</div>
-
 
 <div class="container mt-4">
+  <!-- Header -->
+    <div class="d-flex align-items-center justify-content-center position-relative mb-4">
+        <div class="text-center">
+          <h2 class="m-0">Head of the Department, <?= htmlspecialchars($dept); ?></h2>
+           
+        </div>
+        <a href="index.php" class="btn btn-primary position-absolute end-0" onclick="hi()">
+            Logout
+        </a>
+    </div>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <form method="GET" id="filterForm" class="row g-3">
@@ -163,5 +162,10 @@ $sectionData = $allSections;
     </script>
   <?php endif; ?>
 </div>
+<script>
+function hi(){
+    return confirm("Logging out! Are you sure?");
+}
+  </script>
 </body>
 </html>

@@ -52,23 +52,20 @@ $result = $stmt->get_result();
     </style>
 </head>
 <body>
-   <!-- <div class="header-container">
-        <a href="dept_office_dashboard.php" class="btn btn-primary">Dashboard</a>
-   </div> -->
+   
 
-   <br>
-<div class="d-flex justify-content-center align-items-center mb-4 position-relative">
-    <h2 class="text-center m-0">
-        Department of <?php echo htmlspecialchars($dept); ?><br> Students Details
-    </h2>
-    <a href="dept_office_dashboard.php" class="btn btn-primary position-absolute end-0">
-        Dashboard
-    </a>
-</div>
    <div class="container mt-4">
-        <!-- <h2 class="text-center">Department of <?php echo htmlspecialchars($dept); ?></h2>
-        <h3 class="text-center">Students Details</h3> -->
-
+     
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-center position-relative mb-4">
+        <div class="text-center">
+            <h2>Department of <?php echo htmlspecialchars($dept); ?></h2> 
+            <h3>Students Data </h3>
+        </div>
+        <a href="dept_office_dashboard.php" class="btn btn-primary position-absolute end-0">
+            Dashboard
+        </a>
+    </div>
         <!-- Filter Form -->
         <form method="GET" class="row g-3 mb-4">
             <div class="col-md-6">

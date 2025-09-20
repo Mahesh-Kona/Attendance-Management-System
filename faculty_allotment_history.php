@@ -4,15 +4,9 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
     die("Access Denied. This page is only for Department Office users.");
 }
 
-$userID = $_SESSION['userID'];
+$userID = $_SESSION['userID']; 
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "attendance_management_system";
-
-$conn = new mysqli($host, $user, $pass, $db);
-if($conn->connect_error) die("Connection failed: " . $conn->connect_error);
+include "db_connect.php";
 
 //Get dept code of logged-in user
 $stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username = ?");
@@ -38,11 +32,12 @@ $dept_full = isset($dept_names[$dept_code]) ? $dept_names[$dept_code] : $dept_co
 // --- Get filters from request ---
 $yearFilter = $_GET['year'] ?? 'All';
 $sectionFilter = $_GET['section'] ?? 'All';
+$academicYearFilter = $_GET['academic_year'] ?? 'All';  // 🔹 new filter
 
 // Fetch all faculty and their subjects (if any) for this department
 $sql = "
     SELECT u.facultyId, u.facultyName, s.subject_code, s.year, s.section, s.subject_name, 
-           s.credits, s.semester, s.date_time
+           s.credits, s.semester, s.date_time, s.academic_year
     FROM userfaculty u
     LEFT JOIN subjects s ON u.facultyId = s.faculty_id
     WHERE u.dept = ?
@@ -61,6 +56,11 @@ if ($sectionFilter !== "All") {
     $params[] = $sectionFilter;
     $types .= "s";
 }
+if ($academicYearFilter !== "All") {   // 🔹 apply filter
+    $sql .= " AND s.academic_year = ? ";
+    $params[] = $academicYearFilter;
+    $types .= "s";
+}
 
 $sql .= " ORDER BY u.facultyName ASC, s.date_time DESC";
 
@@ -74,6 +74,7 @@ $stmt->close();
 $conn->close();
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,7 +84,6 @@ $conn->close();
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-
 <div class="container py-5">
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-center position-relative mb-4">
@@ -96,31 +96,37 @@ $conn->close();
         </a>
     </div>
 
-   <!-- Filters -->
-<form method="get" class="row g-3 mb-4">
-    <div class="col-md-6">
+<!-- Filters -->
+<form method="get" class="row g-3 mb-4 align-items-end">
+    <div class="col-md-4">
         <label for="year" class="form-label">Year</label>
         <select name="year" id="year" class="form-select" onchange="this.form.submit()">
-            <option value="All" <?php if($yearFilter=="All") echo "selected"; ?>>All</option>
             <option value="E1" <?php if($yearFilter=="E1") echo "selected"; ?>>E1</option>
             <option value="E2" <?php if($yearFilter=="E2") echo "selected"; ?>>E2</option>
             <option value="E3" <?php if($yearFilter=="E3") echo "selected"; ?>>E3</option>
             <option value="E4" <?php if($yearFilter=="E4") echo "selected"; ?>>E4</option>
         </select>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <label for="section" class="form-label">Section</label>
         <select name="section" id="section" class="form-select" onchange="this.form.submit()">
-            <option value="All" <?php if($sectionFilter=="All") echo "selected"; ?>>All</option>
             <option value="1" <?php if($sectionFilter=="1") echo "selected"; ?>>1</option>
             <option value="2" <?php if($sectionFilter=="2") echo "selected"; ?>>2</option>
             <option value="3" <?php if($sectionFilter=="3") echo "selected"; ?>>3</option>
-            <option value="4" <?php if($sectionFilter=="5") echo "selected"; ?>>4</option>
+            <option value="4" <?php if($sectionFilter=="4") echo "selected"; ?>>4</option>
             <option value="5" <?php if($sectionFilter=="5") echo "selected"; ?>>5</option>
             <option value="6" <?php if($sectionFilter=="6") echo "selected"; ?>>6</option>
         </select>
     </div>
+    <div class="col-md-4">
+        <label for="academic_year" class="form-label">Academic Year</label>
+        <select name="academic_year" id="academic_year" class="form-select" onchange="this.form.submit()">
+            <option value="2025-26" <?php if($academicYearFilter=="2025-26") echo "selected"; ?>>2025-26</option>
+            <option value="2024-25" <?php if($academicYearFilter=="2024-25") echo "selected"; ?>>2024-25</option>
+        </select>
+    </div>
 </form>
+
 
 
     <!-- Table -->
@@ -133,6 +139,7 @@ $conn->close();
                     <th>Subject Name</th>
                     <th>Credits</th>
                     <th>Year</th>
+                    <th>academic_year</th>
                     <th>Section</th>
                     <th>Semester</th>
                     <th>Faculty ID</th>
@@ -149,6 +156,7 @@ $conn->close();
                         <td><?php echo htmlspecialchars($fs['subject_name'] ?? 'N/A'); ?></td>
                         <td class="text-center"><?php echo htmlspecialchars($fs['credits'] ?? 'N/A'); ?></td>
                         <td class="text-center"><?php echo htmlspecialchars($fs['year'] ?? 'N/A'); ?></td>
+                        <td class="text-center"><?php echo htmlspecialchars($fs['academic_year'] ?? 'N/A'); ?></td>
                         <td class="text-center"><?php echo htmlspecialchars($fs['section'] ?? 'N/A'); ?></td>
                         <td class="text-center"><?php echo htmlspecialchars($fs['semester'] ?? 'N/A'); ?></td>
                         <td><?php echo htmlspecialchars($fs['facultyId']); ?></td>
@@ -158,7 +166,7 @@ $conn->close();
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="10" class="text-center text-muted">No data available</td>
+                        <td colspan="11" class="text-center text-muted">No data available</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

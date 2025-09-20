@@ -85,6 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -149,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <p class="mb-0">Efficient | Reliable | Academic Excellence</p>
   </div>
 <div class="container mt-5">
-    <div class="card shadow p-4 mx-auto" style="max-width: 400px;">
+    <div class="card shadow p-4 mx-auto" style="max-width: 400px">
         <h2 class="text-center mb-4">Login</h2>
         <?php if($login_msg) echo "<div class='alert alert-warning'>$login_msg</div>"; ?>
         <form method="POST" action="">

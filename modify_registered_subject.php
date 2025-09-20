@@ -89,18 +89,21 @@ $stmt->close();
     </style>
 </head>
 <body>
-    <br><br>
+ 
+    
+
+
+    <!-- Filter Form -->
+     <!-- Header -->
     <div class="d-flex align-items-center justify-content-center position-relative mb-4">
         <div class="text-center">
             <h2>Department of <?php echo htmlspecialchars($dept); ?></h2> 
-            <h3>Manage the Registered Subjects</h3>
+            <h3>Manage the subjects</h3>
         </div>
         <a href="dept_office_dashboard.php" class="btn btn-primary position-absolute end-0">
             Dashboard
         </a>
     </div>
-
-    <!-- Filter Form -->
 <div class="container mb-3">
     <form method="GET" class="row g-3">
         <div class="col-md-6">

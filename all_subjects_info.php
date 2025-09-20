@@ -12,9 +12,11 @@ $dept = $_SESSION['dept'];
 // Filters
 $yearFilter = isset($_GET['year']) && $_GET['year'] !== '' ? $_GET['year'] : null;
 $semesterFilter = isset($_GET['semester']) && $_GET['semester'] !== '' ? $_GET['semester'] : null;
+$academicYearFilter = isset($_GET['academic_year']) && $_GET['academic_year'] !== '' ? $_GET['academic_year'] : '2025-26'; // default 🔹
+
 
 // Base query - unique subjects 
-$sql = "SELECT subject_code, subject_name, year, semester, MIN(date_time) as date
+$sql = "SELECT subject_code, subject_name, year, semester, academic_year, MIN(date_time) as date
         FROM subjects 
         WHERE dept = ?";
 
@@ -32,9 +34,14 @@ if($semesterFilter){
     $types .= "s";
     $params[] = $semesterFilter;
 }
+if($academicYearFilter){  // 🔹 mandatory filter
+    $sql .= " AND academic_year = ?";
+    $types .= "s";
+    $params[] = $academicYearFilter;
+}
 
 // Grouping ensures uniqueness
-$sql .= " GROUP BY subject_code, subject_name, year, semester
+$sql .= " GROUP BY subject_code, subject_name, year, semester, academic_year
           ORDER BY year, semester, subject_code";
 
 $stmt = $conn->prepare($sql);
@@ -52,32 +59,41 @@ $result = $stmt->get_result();
     <title>All Subjects Info</title>
 </head>
 <body>
-   <div class="header-container text-end p-2 bg-light">
-        <a href="dept_office_dashboard.php" class="btn btn-primary">Dashboard</a>
-   </div>
-
-   <div class="container mt-4">
-        <h2 class="text-center">Department of <?php echo htmlspecialchars($dept); ?></h2>
-        <h3 class="text-center">Subjects Details</h3>
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-center position-relative mb-4">
+        <div class="text-center">
+            <h2>Department of <?php echo htmlspecialchars($dept); ?></h2> 
+            <h3>Subjects Details</h3>
+        </div>
+        <a href="dept_office_dashboard.php" class="btn btn-primary position-absolute end-0">
+            Dashboard
+        </a>
+    </div>
 
         <!-- Filter Form (Auto-submit on change, no button) -->
-        <form method="GET" class="row g-3 mb-4">
-            <div class="col-md-6">
+        <form method="GET" class="row g-3 mb-4 align-items-end">
+            <div class="col-md-4">
                 <label for="year" class="form-label">Year</label>
                 <select name="year" id="year" class="form-select" onchange="this.form.submit()">
-                    <option value="">All</option>
                     <option value="E1" <?php if($yearFilter=="E1") echo "selected"; ?>>E1</option>
                     <option value="E2" <?php if($yearFilter=="E2") echo "selected"; ?>>E2</option>
                     <option value="E3" <?php if($yearFilter=="E3") echo "selected"; ?>>E3</option>
                     <option value="E4" <?php if($yearFilter=="E4") echo "selected"; ?>>E4</option>
                 </select>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label for="semester" class="form-label">Semester</label>
                 <select name="semester" id="semester" class="form-select" onchange="this.form.submit()">
-                    <option value="">All</option>
                     <option value="1" <?php if($semesterFilter=="1") echo "selected"; ?>>1</option>
                     <option value="2" <?php if($semesterFilter=="2") echo "selected"; ?>>2</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="academic_year" class="form-label">Academic Year</label>
+                <select name="academic_year" id="academic_year" class="form-select" onchange="this.form.submit()">
+                    <option value="2025-26" <?php if($academicYearFilter=="2025-26") echo "selected"; ?>>2025-26</option>
+                    <option value="2024-25" <?php if($academicYearFilter=="2024-25") echo "selected"; ?>>2024-25</option>
                 </select>
             </div>
         </form>
@@ -92,6 +108,7 @@ $result = $stmt->get_result();
                         <th>Subject Name</th>
                         <th>Year</th>
                         <th>Semester</th>
+                        <th>Academic Year</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,11 +120,12 @@ $result = $stmt->get_result();
                             <td class="text-start"><?php echo htmlspecialchars($row['subject_name']); ?></td>
                             <td><?php echo htmlspecialchars($row['year']); ?></td>
                             <td><?php echo htmlspecialchars($row['semester']); ?></td>
+                            <td><?php echo htmlspecialchars($row['academic_year']); ?></td>
                         </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="text-center text-muted">No subjects found.</td>
+                            <td colspan="6" class="text-center text-muted">No subjects found.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>

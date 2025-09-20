@@ -83,9 +83,9 @@ $conn->close();
 
     <!-- Header -->
     <div class="header">
-        <h1>Attendance Management System</h1>
-        <h2>Faculty Dashboard</h2>
-        <a href="index.php" class="btn btn-primary">Logout</a>
+        
+        <h1>Faculty Dashboard</h1>
+        <a href="index.php" class="btn btn-primary" >Logout</a>
     </div>
 
     <!-- Faculty Info Box -->
@@ -109,7 +109,7 @@ $conn->close();
                 <th>Section</th>
                 <th>Academic Year</th>
                 <th>Semester</th>
-                <th>Date & Time</th>
+                <th>Date</th>
                 <th>Action</th>
             </tr>
         </thead>
