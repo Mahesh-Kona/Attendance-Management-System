@@ -1,15 +1,14 @@
 <?php
-$mysqli = @new mysqli(
-    getenv('DB_HOST'),
-    getenv('DB_USERNAME'),
-    getenv('DB_PASSWORD'),
-    getenv('DB_DATABASE'),
-    getenv('DB_PORT')
-);
+$host = "byfmwzkfsnddf53znklo-mysql.services.clever-cloud.com";
+$db   = "byfmwzkfsnddf53znklo";
+$user = "urj4gm5ldodmfe3p";
+$pass = "XlEbFaSzIgJdkpvz9ea0";
+$port = 3306;
 
-if ($mysqli->connect_errno) {
-    error_log("Database connection failed: " . $mysqli->connect_error);
-    die("Database connection failed. Check logs for details.");
+$conn = new mysqli($host, $user, $pass, $db, $port);
+
+if($conn->connect_error) {
+    die("❌ Connection failed: " . $conn->connect_error);
 }
-
-echo "Connected successfully!";
+echo "✅ Connected successfully to Clever Cloud MySQL!";
+?>
