@@ -6,7 +6,7 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
 
 $userID = $_SESSION['userID'];
 
-include "db_connect.php;
+include "db_connect.php";
 
 // Get department of logged-in user
 $stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username= ?");
@@ -209,5 +209,6 @@ $conn->close();
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 
 
