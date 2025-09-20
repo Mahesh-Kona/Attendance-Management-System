@@ -144,7 +144,7 @@ $conn->close();
                     <th>Semester</th>
                     <th>Faculty ID</th>
                     <th>Faculty Name</th>
-                    <th>Date & Time</th>
+                    <th>Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -175,3 +175,4 @@ $conn->close();
 </div>
 </body>
 </html>
+
