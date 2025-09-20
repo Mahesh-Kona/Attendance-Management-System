@@ -48,9 +48,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Forgot Password</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style> 
+.portal-header {
+      background: #002147;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .portal-header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    </style>
 </head>
 <body class="bg-light">
-
+<div class="portal-header">
+    <h1>Rajiv Gandhi University of Knowledge Technologies Nuzvid</h1>
+    <!-- <h3>Catering to the educational needs of gifted rural youth of Andhra Pradesh</h3> -->
+    <h2>Attendance Management System</h2>
+    <p class="mb-0">Efficient | Reliable | Academic Excellence</p>
+  </div>
 <div class="container mt-5">
     <div class="card shadow p-4 mx-auto" style="max-width: 500px;">
         <h2 class="text-center mb-4">Forgot Password</h2>
