@@ -6,7 +6,7 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include "db_connect.php;
+include "db_connect.php";
 
 $facultyID = $_SESSION['userID'];
 
@@ -139,4 +139,5 @@ $conn->close();
 
 </body>
 </html>
+
 
