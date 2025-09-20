@@ -6,12 +6,7 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'student'){
 
 $studentID = $_SESSION['userID'];
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "attendance_management_system";
-
-$conn = new mysqli($host, $user, $pass, $db);
+include "db_connect.php";
 if($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
 // Fetch student details including year, dept, section
@@ -185,4 +180,5 @@ $stmt->close();
 
 </body>
 </html>
+
 
