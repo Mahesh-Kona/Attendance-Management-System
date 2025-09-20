@@ -6,7 +6,7 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include "db_connect.php;
+include "db_connect.php";
 
 // Get query params
 $faculty_id   = $_GET['faculty_id'] ?? '';
@@ -168,4 +168,5 @@ $conn->close();
 
 </body>
 </html>
+
 
