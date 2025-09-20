@@ -1,11 +1,11 @@
 <?php
-$host = "byfmwzkfsnddf53znklo-mysql.services.clever-cloud.com";
-$db   = "byfmwzkfsnddf53znklo";
-$user = "urj4gm5ldodmfe3p";
-$pass = "XlEbFaSzIgJdkpvz9ea0";
-$port = 3306;
-
+$host = getenv("DB_HOST");
+$db   = getenv("DB_NAME");
+$user = getenv("DB_USER");
+$pass = getenv("DB_PASS");
+$port = getenv("DB_PORT");
 $conn = new mysqli($host, $user, $pass, $db, $port);
+
 
 if($conn->connect_error) {
     die("❌ Connection failed: " . $conn->connect_error);
