@@ -44,42 +44,48 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
         while ($row = $studentsResult->fetch_assoc()) {
             $student_id = $row['studentID'];
 
-            // Attendance query with optional month filter
-            $sqlSubj = "SELECT ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
-                        FROM attendance a
-                        WHERE a.student_id = ?";
-
-            if ($month) {
-                $sqlSubj .= " AND a.month = ?";
-            }
-
-            $sqlSubj .= " GROUP BY a.subject_code";
-
-            if ($month) {
-                $stmtSubj = $conn->prepare($sqlSubj);
-                $stmtSubj->bind_param("ss", $student_id, $month);
-            } else {
+            if ($month === 'Total Semester') {
+                $sqlSubj = "SELECT AVG(percent) as percent FROM (\n                    SELECT ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent\n                    FROM attendance a\n                    WHERE a.student_id = ? AND a.month IN ('MT-1','MT-2','MT-3')\n                    GROUP BY a.subject_code, a.month\n                ) as t";
                 $stmtSubj = $conn->prepare($sqlSubj);
                 $stmtSubj->bind_param("s", $student_id);
-            }
-
-            $stmtSubj->execute();
-            $resSubj = $stmtSubj->get_result();
-
-            $subjPercents = [];
-            while ($r = $resSubj->fetch_assoc()) {
-                $subjPercents[] = $r['percent'];
-            }
-
-            if (count($subjPercents) > 0) {
-                $studentPerc = array_sum($subjPercents) / count($subjPercents);
-
-                if ($percentFilter !== '' && $studentPerc >= (int)$percentFilter) {
-                    continue;
+                $stmtSubj->execute();
+                $resSubj = $stmtSubj->get_result();
+                $subjPercents = [];
+                while ($r = $resSubj->fetch_assoc()) {
+                    $subjPercents[] = $r['percent'];
                 }
-
-                $campusSum += $studentPerc;
-                $campusCount++;
+                if (count($subjPercents) > 0) {
+                    $studentPerc = array_sum($subjPercents) / count($subjPercents);
+                    $campusSum += $studentPerc;
+                    $campusCount++;
+                }
+            } else {
+                $sqlSubj = "SELECT ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent\n                        FROM attendance a\n                        WHERE a.student_id = ?";
+                if ($month) {
+                    $sqlSubj .= " AND a.month = ?";
+                }
+                $sqlSubj .= " GROUP BY a.subject_code";
+                if ($month) {
+                    $stmtSubj = $conn->prepare($sqlSubj);
+                    $stmtSubj->bind_param("ss", $student_id, $month);
+                } else {
+                    $stmtSubj = $conn->prepare($sqlSubj);
+                    $stmtSubj->bind_param("s", $student_id);
+                }
+                $stmtSubj->execute();
+                $resSubj = $stmtSubj->get_result();
+                $subjPercents = [];
+                while ($r = $resSubj->fetch_assoc()) {
+                    $subjPercents[] = $r['percent'];
+                }
+                if (count($subjPercents) > 0) {
+                    $studentPerc = array_sum($subjPercents) / count($subjPercents);
+                    if ($percentFilter !== '' && $studentPerc >= (int)$percentFilter) {
+                        continue;
+                    }
+                    $campusSum += $studentPerc;
+                    $campusCount++;
+                }
             }
         }
     }
@@ -92,9 +98,7 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
             continue;
         }
 
-        $sqlStudents = "SELECT studentID, year, academic_year 
-                    FROM userstudent 
-                    WHERE TRIM(UPPER(dept)) = TRIM(UPPER(?))";
+        $sqlStudents = "SELECT studentID, year, academic_year \n                    FROM userstudent \n                    WHERE TRIM(UPPER(dept)) = TRIM(UPPER(?))";
         if($filterYear){
             $sqlStudents .= " AND year = ?";
         }
@@ -122,40 +126,46 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
         while ($row = $studentsResult->fetch_assoc()) {
             $student_id = $row['studentID'];
 
-            $sqlSubj = "SELECT ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
-                        FROM attendance a
-                        WHERE a.student_id = ?";
-
-            if ($month) {
-                $sqlSubj .= " AND a.month = ?";
-            }
-
-            $sqlSubj .= " GROUP BY a.subject_code";
-
-            if ($month) {
-                $stmtSubj = $conn->prepare($sqlSubj);
-                $stmtSubj->bind_param("ss", $student_id, $month);
-            } else {
+            if ($month === 'Total Semester') {
+                $sqlSubj = "SELECT AVG(percent) as percent FROM (\n                    SELECT ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent\n                    FROM attendance a\n                    WHERE a.student_id = ? AND a.month IN ('MT-1','MT-2','MT-3')\n                    GROUP BY a.subject_code, a.month\n                ) as t";
                 $stmtSubj = $conn->prepare($sqlSubj);
                 $stmtSubj->bind_param("s", $student_id);
-            }
-
-            $stmtSubj->execute();
-            $resSubj = $stmtSubj->get_result();
-
-            $subjPercents = [];
-            while ($r = $resSubj->fetch_assoc()) {
-                $subjPercents[] = $r['percent'];
-            }
-
-            if(count($subjPercents) > 0){
-                $studentPerc = array_sum($subjPercents)/count($subjPercents);
-
-                if($percentFilter !== '' && $studentPerc >= (int)$percentFilter){
-                    continue;
+                $stmtSubj->execute();
+                $resSubj = $stmtSubj->get_result();
+                $subjPercents = [];
+                while ($r = $resSubj->fetch_assoc()) {
+                    $subjPercents[] = $r['percent'];
                 }
-
-                $studentPercents[] = $studentPerc;
+                if(count($subjPercents) > 0){
+                    $studentPerc = array_sum($subjPercents)/count($subjPercents);
+                    $studentPercents[] = $studentPerc;
+                }
+            } else {
+                $sqlSubj = "SELECT ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent\n                        FROM attendance a\n                        WHERE a.student_id = ?";
+                if ($month) {
+                    $sqlSubj .= " AND a.month = ?";
+                }
+                $sqlSubj .= " GROUP BY a.subject_code";
+                if ($month) {
+                    $stmtSubj = $conn->prepare($sqlSubj);
+                    $stmtSubj->bind_param("ss", $student_id, $month);
+                } else {
+                    $stmtSubj = $conn->prepare($sqlSubj);
+                    $stmtSubj->bind_param("s", $student_id);
+                }
+                $stmtSubj->execute();
+                $resSubj = $stmtSubj->get_result();
+                $subjPercents = [];
+                while ($r = $resSubj->fetch_assoc()) {
+                    $subjPercents[] = $r['percent'];
+                }
+                if(count($subjPercents) > 0){
+                    $studentPerc = array_sum($subjPercents)/count($subjPercents);
+                    if($percentFilter !== '' && $studentPerc >= (int)$percentFilter){
+                        continue;
+                    }
+                    $studentPercents[] = $studentPerc;
+                }
             }
         }
 
@@ -231,10 +241,11 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
 <div class="col-md-2">
   <label class="form-label">Month/Test</label>
   <select name="month" class="form-select" onchange="this.form.submit()">
-    <option value="" <?= $month==''?'selected':'' ?>>All</option>
+    <option value="" disabled <?= $month==''?'selected':'' ?>>Select</option>
     <option value="MT-1" <?= ($month=="MT-1")?'selected':'' ?>>MT-1</option>
     <option value="MT-2" <?= ($month=="MT-2")?'selected':'' ?>>MT-2</option>
     <option value="MT-3" <?= ($month=="MT-3")?'selected':'' ?>>MT-3</option>
+    <option value="Total Semester" <?= ($month=="Total Semester")?'selected':'' ?>>Total Semester</option>
   </select>
 </div>
 
@@ -242,7 +253,7 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
 <div class="col-md-3">
   <label class="form-label">Below %</label>
   <select name="percent" class="form-select" onchange="this.form.submit()">
-    <option value="" <?= $percentFilter==''?'selected':'' ?>>All</option>
+    <option value="" <?= $percentFilter==''?'selected':'' ?>>None</option>
     <option value="65" <?= ($percentFilter=="65")?'selected':'' ?>>65%</option>
     <option value="75" <?= ($percentFilter=="75")?'selected':'' ?>>75%</option>
     <option value="85" <?= ($percentFilter=="85")?'selected':'' ?>>85%</option>
@@ -256,9 +267,9 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
 
 
   <?php if($filterYear || $filterBranch || $filterAY || $month || $percentFilter): ?>
-      <p class="text-center fw-bold fs-5 mt-3">
+      <!-- <p class="text-center fw-bold fs-5 mt-3">
         Overall Campus Average: <?= $campusAvg; ?>%
-      </p>
+      </p> -->
 
       <?php if(!empty($branchAverages)): ?>
         <div class="card mb-4">
@@ -284,8 +295,8 @@ if ($filterYear || $filterBranch || $filterAY || $month || $percentFilter) {
       scales: {
         x: {
           ticks: {
-            maxRotation: 0, // ✅ no rotation
-            minRotation: 0  // ✅ keep horizontal
+            maxRotation: 0, 
+            minRotation: 0 
           }
         },
         y: {

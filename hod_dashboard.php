@@ -19,12 +19,44 @@ $sectionData = [];
 $deptAvg = "NA";
 
 if($dept && $year && $academicYear && $month){  // only run query if all filters selected
+  if($month === 'Total Semester') {
+    // Get all MT-1, MT-2, MT-3 and average them per section
     $sql = "SELECT a.section,
-                   COUNT(CASE WHEN a.status='P' THEN 1 END) AS attended,
-                   COUNT(*) AS total_classes,
-                   ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
-            FROM attendance a
-            WHERE a.dept=? AND a.year=? AND a.academic_year=? AND a.month=?";
+             AVG(percent) as percent
+        FROM (
+          SELECT a.section,
+               ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
+          FROM attendance a
+          WHERE a.dept=? AND a.year=? AND a.academic_year=? AND a.month IN ('MT-1','MT-2','MT-3')
+          GROUP BY a.section, a.month
+        ) as a
+        GROUP BY a.section";
+    $params = [$dept, $year, $academicYear];
+    $types = "sss";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    $sectionPercents = [];
+    while($row = $res->fetch_assoc()){
+      if ($percentFilter !== '' && $row['percent'] >= (int)$percentFilter) {
+        continue;
+      }
+      $sectionData["Section-".$row['section']] = round($row['percent'],2);
+      $sectionPercents[] = $row['percent'];
+    }
+    if(count($sectionPercents) > 0){
+      $deptAvg = round(array_sum($sectionPercents)/count($sectionPercents), 2);
+    }
+  } else {
+    $sql = "SELECT a.section,
+             COUNT(CASE WHEN a.status='P' THEN 1 END) AS attended,
+             COUNT(*) AS total_classes,
+             ROUND((COUNT(CASE WHEN a.status='P' THEN 1 END)/COUNT(*))*100,2) AS percent
+        FROM attendance a
+        WHERE a.dept=? AND a.year=? AND a.academic_year=? AND a.month=?";
     $params = [$dept, $year, $academicYear, $month];
     $types = "ssss";
 
@@ -37,16 +69,17 @@ if($dept && $year && $academicYear && $month){  // only run query if all filters
 
     $sectionPercents = [];
     while($row = $res->fetch_assoc()){
-        if ($percentFilter !== '' && $row['percent'] >= (int)$percentFilter) {
-            continue;
-        }
-        $sectionData["Section-".$row['section']] = $row['percent'];
-        $sectionPercents[] = $row['percent'];
+      if ($percentFilter !== '' && $row['percent'] >= (int)$percentFilter) {
+        continue;
+      }
+      $sectionData["Section-".$row['section']] = $row['percent'];
+      $sectionPercents[] = $row['percent'];
     }
 
     if(count($sectionPercents) > 0){
-        $deptAvg = round(array_sum($sectionPercents)/count($sectionPercents), 2);
+      $deptAvg = round(array_sum($sectionPercents)/count($sectionPercents), 2);
     }
+  }
 }
 
 // --- Always show Section-1 to Section-6 ---
@@ -112,6 +145,7 @@ $sectionData = $allSections;
             <option value="MT-1" <?= ($month=="MT-1")?'selected':'' ?>>MT-1</option>
             <option value="MT-2" <?= ($month=="MT-2")?'selected':'' ?>>MT-2</option>
             <option value="MT-3" <?= ($month=="MT-3")?'selected':'' ?>>MT-3</option>
+            <option value="Total Semester" <?= ($month=="Total Semester")?'selected':'' ?>>Total Semester</option>
           </select>
         </div>
 
@@ -119,7 +153,7 @@ $sectionData = $allSections;
         <div class="col-md-3">
           <label class="form-label">Below %</label>
           <select name="percent" class="form-select" onchange="this.form.submit()">
-            <option value="" <?= $percentFilter==''?'selected':'' ?>>Select</option>
+            <option value="" <?= $percentFilter==''?'selected':'' ?>>None</option>
             <option value="65" <?= ($percentFilter=="65")?'selected':'' ?>>65%</option>
             <option value="75" <?= ($percentFilter=="75")?'selected':'' ?>>75%</option>
             <option value="85" <?= ($percentFilter=="85")?'selected':'' ?>>85%</option>
