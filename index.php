@@ -98,21 +98,57 @@ $conn->close();
 <style>
     body {
       background-color: #f4f6f9;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+        flex-direction: column;
     }
-    .portal-header {
-      /* background: #002147; */
-      color: darkred;
-      padding: 20px 0;
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    .portal-header h1 {
-      margin: 0;
-      font-size: 2.2rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
+            
+            html, body {
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+            }  
+            .portal-header {
+                height: 92px;
+                padding: 8px 0;
+                text-align: center;
+                color: darkred;
+                position: relative;
+                box-sizing: border-box;
+                font-family:roboto;
+            }
+            .portal-header h1 { margin: 0; font-size: 2.3rem; font-weight: 600; }
+            .portal-header h2 { margin: 2px 0 0 0; font-size: 1.9rem; }
+            .portal-header img { height: 56px; position: absolute; }
+
+            /* Main area centers the card and takes remaining space */
+            .container {
+                flex: 1 0 auto;
+                margin: 0; 
+                display: flex;
+               margin-left:110px;
+                justify-content: center;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+
+            
+            .card {
+                width: 100%;
+                max-width: 420px;
+                margin: 0 auto;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            footer {
+                height: 56px;
+                background: #002147;
+                color: #fff;
+                text-align: center;
+                padding: 12px 0;
+                font-size: 0.9rem;
+            }
+
+        
     .card {
       border-radius: 15px;
       box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
@@ -132,26 +168,26 @@ $conn->close();
     .list-group-item a:hover {
       color: #0056b3;
     }
-    footer {
-      background: #002147;
-      color: #fff;
-      text-align: center;
-      padding: 15px 0;
-      margin-top: 50px;
-      font-size: 0.9rem;
-    }
+        footer {
+            background: #002147;
+            color: #fff;
+            text-align: center;
+            /* margin-top: 10px; */
+            font-size: 0.9rem;
+        }
   </style>
 </head>
 <body class="bg-light">
  
-  <div class="portal-header">
-    <img src="rgukt.jpg" alt="RGUKT Logo" style="height:80px; position:absolute; left:80px; top:15px;">
+    <div class="portal-header">
+        <img src="rgukt.jpg" alt="RGUKT Logo" style="height:80px; position:absolute; left:140px; top:3px;">
     <h1>Rajiv Gandhi University of Knowledge Technologies Nuzvid</h1>
     <!-- <h3>Catering to the educational needs of gifted rural youth of Andhra Pradesh</h3> -->
     <h2>Attendance Management System</h2>
-    <p class="mb-0">Efficient | Reliable | Academic Excellence</p>
+    <!-- <p class="mb-0">Efficient | Reliable | Academic Excellence</p> -->
   </div>
-<div class="container mt-5">
+  
+<div class="container">
     <div class="card shadow p-4 mx-auto" style="max-width: 400px">
         <h2 class="text-center mb-4">Login</h2>
         <?php if($login_msg) echo "<div class='alert alert-warning'>$login_msg</div>"; ?>
@@ -197,7 +233,7 @@ $conn->close();
         </p>
     </div>
 </div>
-
+    
 <script>
 function showDept(role) {
     if(role === 'dept_office' || role === 'hod') {
