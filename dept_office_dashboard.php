@@ -7,10 +7,6 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
 $userID = $_SESSION['userID'];
 
 include "db_connect.php";
-
-$conn = new mysqli($host, $user, $pass, $db);
-if($conn->connect_error) die("Connection failed: " . $conn->connect_error);
-
 // Get department of logged-in user
 $stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username= ?");
 $stmt->bind_param("s", $userID);
@@ -237,5 +233,6 @@ $conn->close();
 
 </body>
 </html>
+
 
 
