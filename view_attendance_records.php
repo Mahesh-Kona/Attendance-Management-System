@@ -6,7 +6,15 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include "db_connect.php";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "attendance_management_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
 // Get query params
 $faculty_id   = $_GET['faculty_id'] ?? '';
@@ -36,12 +44,12 @@ while ($row = $date_result->fetch_assoc()) {
 $stmt->close();
 
 // Step 2: Get all students in this subject/year/section
-$students_sql = "SELECT DISTINCT student_id, student_name 
-                 FROM attendance
-                 WHERE subject_code = ? AND faculty_name = ? AND year = ? AND section = ?
+$students_sql = "SELECT studentID as student_id, studentName as student_name 
+                 FROM userstudent
+                 WHERE year = ? AND section = ?
                  ORDER BY student_id ASC";
 $stmt = $conn->prepare($students_sql);
-$stmt->bind_param("ssss", $subject_code, $faculty_name, $year, $section);
+$stmt->bind_param("ss", $year, $section);
 $stmt->execute();
 $students_result = $stmt->get_result();
 $students = [];
@@ -74,9 +82,24 @@ $conn->close();
     <title>Attendance Report - <?php echo htmlspecialchars($subject_name); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px 0 0 0;
+    }
+    .main-content {
+        flex: 1 0 auto;
+    }
     h1 { text-align: center; margin-bottom: 20px; }
-    .info-box { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .info-box { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);width: 50%;text-align:left }
     .table-container { overflow-x: auto; max-width: 100%; }
     table { background: #fff; font-size: 14px; border-collapse: collapse; white-space: nowrap; }
     th, td { text-align: center; vertical-align: middle; padding: 8px; }
@@ -98,10 +121,41 @@ $conn->close();
     thead th {
         background-color: #cfe2ff !important; 
     }
+      footer {
+            background: #002147;
+            color: #fff;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 0.9rem;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+    .search-bar {
+        width: 280px;
+        border-radius: 25px;
+        border: 1px solid #0d6efd;
+        padding: 8px 18px;
+        font-size: 15px;
+        transition: box-shadow 0.2s;
+        box-shadow: 0 2px 6px rgba(13,110,253,0.08);
+        outline: none;
+    }
+    .search-bar:focus {
+        box-shadow: 0 0 0 2px #0d6efd33;
+        border-color: #0d6efd;
+    }
+    .search-bar::placeholder {
+        color: #888;
+        font-style: italic;
+    }
 </style>
 
 </head>
-<body>
+<body style="display:flex; flex-direction:column; min-height:100vh; padding-bottom:0;">
+<div class="main-content">
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     
@@ -117,24 +171,31 @@ $conn->close();
 </div>
 
     <div class="table-container">
-        <table class="table table-bordered table-striped">
-            <thead class="table-primary">
-                <tr>
-                    <th class="sticky-col">Student ID</th>
-                    <th class="sticky-col-2">Student Name</th>
-                    <?php foreach ($dates as $d) { ?>
-                        <th><?php echo htmlspecialchars($d); ?></th>
-                    <?php } ?>
-                    <th>No of Classes Conducted</th>
-                    <th>No of Classes Attended</th>
-                </tr>
-            </thead>
-            <tbody>
-        <?php foreach ($students as $sid => $sname) { 
+    <div class="d-flex justify-content-end mb-2">
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search Student...">
+    </div>
+    <table class="table table-bordered table-striped" id="attendanceTable">
+        <thead class="table-primary">
+            <tr>
+                <th>Roll No</th>
+                <th class="sticky-col">Student ID</th>
+                <th class="sticky-col-2">Student Name</th>
+                <?php foreach ($dates as $d) { ?>
+                    <th><?php echo htmlspecialchars($d); ?></th>
+                <?php } ?>
+                <th>No of Classes Conducted</th>
+                <th>No of Classes Attended</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php 
+        $sno = 1;
+        foreach ($students as $sid => $sname) { 
             $total_classes = 0;
             $total_present = 0;
             ?>
             <tr>
+                <td><?php echo $sno++; ?></td>
                 <td class="sticky-col"><?php echo htmlspecialchars($sid); ?></td>
                 <td class="sticky-col-2"><?php echo htmlspecialchars($sname); ?></td>
                 <?php foreach ($dates as $d) { 
@@ -161,12 +222,52 @@ $conn->close();
             </tr>
         <?php } ?>
         </tbody>
-        </table>
+    </table>
+</div>
+
     </div>
-
-   
-
+<footer>
+    &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+    </footer>
 </body>
 </html>
 
+<script>
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    var filter = this.value.toLowerCase();
+    var rows = document.querySelectorAll('#attendanceTable tbody tr');
+    var found = false;
+    var visibleCount = 0;
+    rows.forEach(function(row) {
+        var rollNo = row.cells[0].textContent.toLowerCase();                            
+        var studentId = row.cells[1].textContent.toLowerCase();
+        var studentName = row.cells[2].textContent.toLowerCase();
 
+        if (rollNo.includes(filter)||studentId.includes(filter) || studentName.includes(filter)) {
+            row.style.display = '';
+            found = true;
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    var noResultsRow = document.getElementById('noResultsRow');
+    if (noResultsRow) {
+        noResultsRow.parentNode.removeChild(noResultsRow);
+    }
+
+    // Only show "No results found" if there are zero visible rows
+    if (filter !== "" && visibleCount === 0) {
+        var tbody = document.querySelector('#attendanceTable tbody');
+        var tr = document.createElement('tr');
+        tr.id = 'noResultsRow';
+        var td = document.createElement('td');
+        td.colSpan = <?php echo count($dates) + 5; ?>;
+        td.className = "text-center text-muted";
+        td.textContent = "No results found";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    }
+});
+</script>

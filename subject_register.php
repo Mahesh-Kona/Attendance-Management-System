@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 
 // autoload PhpSpreadsheet
 require 'vendor/autoload.php';
@@ -142,11 +142,40 @@ $conn->close();
   <title>Upload Subjects Excel</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    .main-content {
+      flex: 1 0 auto;
+    }
+    footer {
+      background: #002147;
+      color: #fff;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 0.9rem;
+      width: 100%;
+      margin-top: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      box-sizing: border-box;
+    }
     body { background-color: #f8f9fa; }
     .card { border-radius: 15px; }
   </style>
 </head>
-<body>
+<body style="display:flex; flex-direction:column; min-height:100vh; overflow-x:hidden;">
 <div class="card shadow-lg p-4 mx-auto mt-5" style="max-width: 600px;">
     <h2 class="text-center mb-3">Upload Subjects Excel</h2>
     <p class="text-center text-muted">
@@ -165,9 +194,10 @@ $conn->close();
         </button>
     </form>
 
-    <div class="text-center mt-3">
-        <a href="dept_office_dashboard.php" class="btn btn-primary">Back to Dashboard</a>
-    </div>
+
 </div>
+<footer>
+  &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+</footer>
 </body>
 </html>

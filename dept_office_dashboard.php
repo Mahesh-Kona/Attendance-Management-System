@@ -6,7 +6,13 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
 
 $userID = $_SESSION['userID'];
 
-include "db_connect.php";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "attendance_management_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
 // Get department of logged-in user
 $stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username= ?");
@@ -40,7 +46,13 @@ $conn->close();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <style>
-    body { background: #f8f9fa; }
+    body { 
+      background: #f8f9fa; 
+      display: flex; 
+      flex-direction: column; 
+      min-height: 100vh; 
+      overflow-x: hidden; 
+    }
     .header { text-align: center; margin: 30px 0; }
     .header h1 { font-weight: bold; color: #333; }
     .header p { font-size: 1.1rem; color: #666; }
@@ -54,9 +66,25 @@ $conn->close();
       box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
     }
     .card-body i { font-size: 2.5rem; }
+     footer {
+      background: #002147;
+      color: #fff;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 0.9rem;
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+      margin-top: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      box-sizing: border-box;
+      position:fixed;
+    }
   </style>
 </head>
-<body>
+<body style="display:flex; flex-direction:column; min-height:100vh; overflow-x:hidden;">
 <br>
 
 <div class="position-relative mb-3 text-center">
@@ -133,7 +161,7 @@ $conn->close();
       </a>
     </div>
 
-    <!-- Register Subject -->
+    <!-- Register Subject
     <div class="col-md-3">
       <a href="subject_register.php" class="text-decoration-none">
         <div class="card text-center shadow-sm h-100">
@@ -144,8 +172,19 @@ $conn->close();
           </div>
         </div>
       </a>
+    </div> -->
+    <!-- Register -->
+    <div class="col-md-3">
+      <a href="register.php" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <i class="bi bi-plus-circle text-success mb-3"></i>
+            <h3 class="fw-bold">Register</h3>
+            <p class="text-muted">Faculty/Students/Subjects </p>
+          </div>
+        </div>
+      </a>
     </div>
-
     <!-- Modify Subject -->
     <div class="col-md-3">
       <a href="modify_registered_subject.php" class="text-decoration-none">
@@ -154,19 +193,6 @@ $conn->close();
             <i class="bi bi-pencil-square text-info mb-3"></i>
             <h3 class="fw-bold">Modify</h3>
             <p class="text-muted">Subjects</p>
-          </div>
-        </div>
-      </a>
-    </div>
-
-    <!-- Register People -->
-    <div class="col-md-3">
-      <a href="register.php" class="text-decoration-none">
-        <div class="card text-center shadow-sm h-100">
-          <div class="card-body">
-            <i class="bi bi-person-plus text-dark mb-3"></i>
-            <h3 class="fw-bold">Register</h3>
-            <p class="text-muted">Faculty / Students </p>
           </div>
         </div>
       </a>
@@ -192,13 +218,17 @@ $conn->close();
           <div class="card-body">
             <i class="bi bi-file-earmark-excel text-success mb-3"></i>
             <h3 class="fw-bold">Download</h3>
-            <p class="text-muted">Attendance Excel</p>
+            <p class="text-muted">Attendance Sheet</p>
           </div>
         </div>
       </a>
     </div>
 
-  </div>
+  </div><br>
+  <footer>
+  &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+</footer>
+
 </div>
 
 <script>
@@ -207,8 +237,7 @@ $conn->close();
   }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
-
-
 

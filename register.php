@@ -186,6 +186,20 @@ $conn->close();
          h1{
         margin-left: 100px;
     }
+    footer {
+      background: #002147;
+      color: #fff;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 0.9rem;
+      width: 100%;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
         </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -202,18 +216,16 @@ $conn->close();
 </div>
 
     <?php if ($role == '') { ?>
-          
         <!-- Show options first -->
         <div class="card shadow p-4 mx-auto" style="max-width: 400px;">
-          
             <h2 class="text-center mb-4">Register</h2>
             <div class="d-grid gap-3">
-                <a href="register.php?role=faculty" class="btn btn-primary">Register Faculty</a>
-                <a href="register.php?role=student" class="btn btn-success">Register Students </a>
+                <a href="register.php?role=faculty" class="btn btn-primary">Faculty</a>
+                <a href="register.php?role=student" class="btn btn-success">Students</a>
+                <a href="register.php?role=subject" class="btn btn-warning">Subjects</a>
             </div>
         </div>
     <?php } ?>
-
 
     <?php if ($role == 'faculty') { ?>
         <!-- Faculty Excel Upload -->
@@ -222,34 +234,38 @@ $conn->close();
             <form method="POST" enctype="multipart/form-data" action="">
                 <input type="hidden" name="upload_faculty_excel" value="1">
                 <div class="mb-3">
-                   
                     <label class="form-label">Upload Excel File</label>
                     <input type="file" name="faculty_excel" class="form-control" accept=".xlsx,.xls" required>
-                     s.no|facultyID|facultyName|password|contact|dept|security_question|security_answer|<br>
+                    s.no|facultyID|facultyName|password|contact|dept|security_question|security_answer|<br>
                 </div>
                 <button type="submit" class="btn btn-success w-100">Upload Faculty Data</button>
             </form>
         </div>
     <?php } ?>
 
-   <?php if ($role == 'student') { ?>
-    <!-- Student Excel Upload -->
-    <div class="card shadow p-4 mx-auto mt-4" style="max-width: 500px;">
-        <h2 class="mb-4 text-center">Student Excel Upload</h2>
-        <form method="POST" enctype="multipart/form-data" action="">
-            <input type="hidden" name="upload_student_excel" value="1">
-            <div class="mb-3">
-                <label class="form-label">Upload Excel File</label>
-                <input type="file" name="student_excel" class="form-control" accept=".xlsx,.xls" required>
-                s.no|studentID|studentName|password|contact|dept|security_question|security_answer|section|year|academic_year|<br>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Upload Student Data</button>
-        </form>
-    </div>
-<?php } ?>
+    <?php if ($role == 'student') { ?>
+        <!-- Student Excel Upload -->
+        <div class="card shadow p-4 mx-auto mt-4" style="max-width: 500px;">
+            <h2 class="mb-4 text-center">Student Excel Upload</h2>
+            <form method="POST" enctype="multipart/form-data" action="">
+                <input type="hidden" name="upload_student_excel" value="1">
+                <div class="mb-3">
+                    <label class="form-label">Upload Excel File</label>
+                    <input type="file" name="student_excel" class="form-control" accept=".xlsx,.xls" required>
+                    s.no|studentID|studentName|password|contact|dept|security_question|security_answer|section|year|academic_year|<br>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Upload Student Data</button>
+            </form>
+        </div>
+    <?php } ?>
 
+    <?php if ($role == 'subject') { ?>
+        <?php include 'subject_register.php'; ?>
+    <?php } ?>
 
 </div>
-
+<footer>
+  &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+</footer>
 </body>
 </html>

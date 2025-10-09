@@ -101,8 +101,8 @@ $conn->close();
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .portal-header {
-      background: #002147;
-      color: white;
+      /* background: #002147; */
+      color: darkred;
       padding: 20px 0;
       text-align: center;
       margin-bottom: 40px;
@@ -145,7 +145,9 @@ $conn->close();
 <body class="bg-light">
  
   <div class="portal-header">
+    <img src="rgukt.jpg" alt="RGUKT Logo" style="height:80px; position:absolute; left:80px; top:15px;">
     <h1>Rajiv Gandhi University of Knowledge Technologies Nuzvid</h1>
+    <!-- <h3>Catering to the educational needs of gifted rural youth of Andhra Pradesh</h3> -->
     <h2>Attendance Management System</h2>
     <p class="mb-0">Efficient | Reliable | Academic Excellence</p>
   </div>
@@ -205,6 +207,8 @@ function showDept(role) {
     }
 }
 </script>
-
+<footer>
+    &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+</footer>
 </body>
 </html>

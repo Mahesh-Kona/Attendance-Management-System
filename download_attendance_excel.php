@@ -24,7 +24,7 @@ $stmt->fetch();
 $stmt->close();
 
 // If form not submitted yet → keep frontend same
-if(!isset($_POST['year']) || !isset($_POST['month'])){
+if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_year']) || !isset($_POST['semester'])){
     ?>
   <!DOCTYPE html>
 <html lang="en">
@@ -33,31 +33,17 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
     <title>Download Attendance Report</title>
      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-    body {
-        background: #f4f7fa;
+    html, body {
+        height: 100%;
         margin: 0;
         padding: 0;
+    }
+    body {
         min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f4f7fa;
     }
-    h1{
-        margin-left: 200px;
-    }
-   .header-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 30px;
-}
-.header-bar a {
-    margin-left: 20px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background 0.3s;
-}
     .container {
         background: #ffffff;
         padding: 40px;
@@ -66,6 +52,16 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
         width: 400px;
         text-align: center;
         margin: 40px auto;
+        flex: 1 0 auto;
+    }
+    .header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 30px;
+    }
+    h1 {
+        margin-left: 200px;
     }
     h3 {
         margin-bottom: 20px;
@@ -97,7 +93,21 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
         cursor: pointer;
         transition: background 0.3s;
     }
-</style>
+    footer {
+        background: #002147;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        font-size: 0.9rem;
+        width: 100%;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        box-sizing: border-box;
+        position: static;
+        margin-top: auto;
+    }
+    </style>
 </head>
 <body>
  <div class="header-bar">
@@ -107,9 +117,9 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
 
     <!-- Form -->
     <div class="container">
-        <h3>Download Attendance Excel Sheet</h3>
+        <h3>Download Attendance Sheet</h3>
         <form method="post">
-            <label>Select Year:</label>
+            <label>Year:</label>
             <select name="year" required>
                 <option value="">--Select--</option>
                 <option value="E1">E1</option>
@@ -118,40 +128,45 @@ if(!isset($_POST['year']) || !isset($_POST['month'])){
                 <option value="E4">E4</option>
             </select>
 
-            <label>Select Month:</label>
+            <label>Semester:</label>
+            <select name="semester" required>
+                <option value="">--Select--</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+            </select>
+
+            <label>Academic Year:</label>
+            <select name="academic_year" required>
+                <option value="">--Select--</option>
+                <option value="2025-26">2025-26</option>
+                <option value="2026-27">2026-27</option>
+            </select>
+
+            <label>Exam:</label>
             <select name="month" required>
                 <option value="">--Select--</option>
                 <option value="All">Full Semester</option>
                 <option value="MT-1">MT-1</option>
                 <option value="MT-2">MT-2</option>
                 <option value="MT-3">MT-3</option>
-            </select>
-
+</select>
             <button type="submit" class='btn btn-primary'>Download</button>
         </form>
     </div>
+    <footer>
+      &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+    </footer>
 </body>
 </html>
     <?php
     exit;
 }
 
+// Get filters from POST
 $year = $_POST['year'];
 $month = $_POST['month'];
-
-// Fetch semester and academic_year
-if ($month === "All") {
-    $res = $conn->query("SELECT DISTINCT semester, academic_year 
-                         FROM attendance 
-                         WHERE dept='$dept' AND year='$year' LIMIT 1");
-} else {
-    $res = $conn->query("SELECT DISTINCT semester, academic_year 
-                         FROM attendance 
-                         WHERE dept='$dept' AND year='$year' AND month='$month' LIMIT 1");
-}
-$row = $res->fetch_assoc();
-$semester = $row['semester'] ?? 'Sem1';
-$academic_year = $row['academic_year'] ?? date("Y");
+$academic_year = $_POST['academic_year'];
+$semester = $_POST['semester'];
 
 // Subjects list
 $subjects = [];
@@ -229,6 +244,7 @@ while($stu = $students->fetch_assoc()){
                                 FROM attendance
                                 WHERE dept='$dept' AND year='$year' 
                                   AND semester='$semester'
+                                  AND academic_year='$academic_year'
                                   AND subject_code='$code' 
                                   AND student_id='$studentId'");
         } else {
@@ -237,6 +253,7 @@ while($stu = $students->fetch_assoc()){
                                 FROM attendance
                                 WHERE dept='$dept' AND year='$year' 
                                   AND semester='$semester'
+                                  AND academic_year='$academic_year'
                                   AND month='$month'
                                   AND subject_code='$code' 
                                   AND student_id='$studentId'");
@@ -325,6 +342,7 @@ while($sec = $sections->fetch_assoc()){
                                     FROM attendance
                                     WHERE dept='$dept' AND year='$year' 
                                       AND semester='$semester'
+                                      AND academic_year='$academic_year'
                                       AND subject_code='$code' 
                                       AND student_id='$studentId'");
             } else {
@@ -333,6 +351,7 @@ while($sec = $sections->fetch_assoc()){
                                     FROM attendance
                                     WHERE dept='$dept' AND year='$year' 
                                       AND semester='$semester'
+                                      AND academic_year='$academic_year'
                                       AND month='$month'
                                       AND subject_code='$code' 
                                       AND student_id='$studentId'");
