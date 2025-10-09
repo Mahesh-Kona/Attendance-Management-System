@@ -7,11 +7,6 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
 }
 
 include 'db_connect.php';
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
 // Get query params
 $faculty_id   = $_GET['faculty_id'] ?? '';
 $faculty_name = $_GET['faculty_name'] ?? '';
@@ -267,6 +262,7 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     }
 });
 </script>
+
 
 
 
