@@ -49,27 +49,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <title>Forgot Password</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style> 
-.portal-header {
-      background: #002147;
-      color: white;
-      padding: 20px 0;
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    .portal-header h1 {
-      margin: 0;
-      font-size: 2.2rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-    </style>
+  .portal-header {
+                height: 92px;
+                padding: 8px 0;
+                text-align: center;
+                color: darkred;
+                position: relative;
+                box-sizing: border-box;
+                font-family:roboto;
+            }
+            .portal-header h1 { margin: 0; font-size: 2.3rem; font-weight: 600; }
+            .portal-header h2 { margin: 2px 0 0 0; font-size: 1.9rem; }
+            .portal-header img { height: 56px; position: absolute; }
+                        body {
+                            background-color: #f4f6f9;
+                            display: flex;
+                            flex-direction: column;
+                            min-height: 100vh;
+                            margin: 0;
+                        }
+                        .container {
+                            flex: 1 0 auto;
+                        }
+                        footer {
+                                height: 56px;
+                                background: #002147;
+                                color: #fff;
+                                text-align: center;
+                                padding: 12px 0;
+                                font-size: 0.9rem;
+                                flex-shrink: 0;
+                        }
+   </style>
 </head>
 <body class="bg-light">
 <div class="portal-header">
+     <img src="rgukt.jpg" alt="RGUKT Logo" style="height:80px; position:absolute; left:140px; top:3px;">
     <h1>Rajiv Gandhi University of Knowledge Technologies Nuzvid</h1>
     <!-- <h3>Catering to the educational needs of gifted rural youth of Andhra Pradesh</h3> -->
     <h2>Attendance Management System</h2>
-    <p class="mb-0">Efficient | Reliable | Academic Excellence</p>
+    <!-- <p class="mb-0">Efficient | Reliable | Academic Excellence</p> -->
   </div>
 <div class="container mt-5">
     <div class="card shadow p-4 mx-auto" style="max-width: 500px;">
@@ -128,6 +147,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     </div>
 </div>
-
+<footer>
+    &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+</footer>
 </body>
 </html>

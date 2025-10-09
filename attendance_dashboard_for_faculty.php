@@ -154,6 +154,27 @@ $conn->close();
             margin-bottom: 20px;
         }
 
+        /* Search bar style (matching all_students_info.php) */
+        .search-bar {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 25px;
+            border: 1px solid #0d6efd;
+            padding: 8px 18px;
+            font-size: 15px;
+            transition: box-shadow 0.2s;
+            box-shadow: 0 2px 6px rgba(13,110,253,0.08);
+            outline: none;
+        }
+        .search-bar:focus {
+            box-shadow: 0 0 0 2px #0d6efd33;
+            border-color: #0d6efd;
+        }
+        .search-bar::placeholder {
+            color: #888;
+            font-style: italic;
+        }
+
         table th, table td { vertical-align: middle; }
         
         footer {
@@ -227,8 +248,13 @@ $conn->close();
 
             <!-- Attendance Table -->
             <div class="card">
-                <h5><strong>Mark Attendance</strong></h5>
-                <table class="table table-bordered table-striped">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><strong>Mark Attendance</strong></h5>
+                    <div class="ms-3" style="min-width:260px; max-width:50%;">
+                        <input id="searchInput" type="text" class="search-bar" placeholder="🔍 Search students..." aria-label="Search students">
+                    </div>
+                </div>
+                <table id="studentsTable" class="table table-bordered table-striped">
                     <thead class="table-primary">
                         <tr>
                             <th>Student ID</th>
@@ -248,9 +274,9 @@ $conn->close();
                     <?php if (!empty($students_data)) { ?>
                         <?php foreach ($students_data as $i => $row) { ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($row['studentId']); ?></td>
-                                <td><?php echo htmlspecialchars($row['studentName']); ?></td>
-                                <td><?php echo $i + 1; ?></td>
+                                <td class="student-id"><?php echo htmlspecialchars($row['studentId']); ?></td>
+                                <td class="student-name"><?php echo htmlspecialchars($row['studentName']); ?></td>
+                                <td class="student-roll"><?php echo $i + 1; ?></td>
                                 <td>
                                     <input type="checkbox" class="student-check" name="attendance[<?php echo $row['studentId']; ?>]" value="P" checked>
                                 </td>
@@ -289,6 +315,49 @@ $conn->close();
             checkboxes[i].checked = source.checked;
         }
     }
+    // Filter students by ID, Name or Roll No
+    (function() {
+        var input = document.getElementById('searchInput');
+        if (!input) return;
+        var table = document.getElementById('studentsTable');
+        var tbody = table ? table.tBodies[0] : null;
+        input.addEventListener('input', function() {
+            var q = input.value.trim().toLowerCase();
+            if (!tbody) return;
+            var visibleCount = 0;
+            for (var i = 0; i < tbody.rows.length; i++) {
+                var row = tbody.rows[i];
+                // skip any rows that are used as placeholders (like a single-cell 'No students available')
+                if (row.cells.length < 4) continue;
+                var id = (row.querySelector('.student-id') || {textContent: ''}).textContent.trim().toLowerCase();
+                var name = (row.querySelector('.student-name') || {textContent: ''}).textContent.trim().toLowerCase();
+                var roll = (row.querySelector('.student-roll') || {textContent: ''}).textContent.trim().toLowerCase();
+                if (q === '' || id.indexOf(q) !== -1 || name.indexOf(q) !== -1 || roll.indexOf(q) !== -1) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+
+            // Manage "No students found" row
+            var noRow = document.getElementById('noSearchResultsRow');
+            if (visibleCount === 0) {
+                if (!noRow) {
+                    noRow = document.createElement('tr');
+                    noRow.id = 'noSearchResultsRow';
+                    var td = document.createElement('td');
+                    td.colSpan = 4;
+                    td.className = 'text-center text-muted';
+                    td.textContent = 'No students found.';
+                    noRow.appendChild(td);
+                    tbody.appendChild(noRow);
+                }
+            } else {
+                if (noRow) noRow.remove();
+            }
+        });
+    })();
     </script>
 </body>
 </html>

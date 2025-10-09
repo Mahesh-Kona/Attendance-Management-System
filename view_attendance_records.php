@@ -6,7 +6,16 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include 'db_connect.php';
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "attendance_management_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
 // Get query params
 $faculty_id   = $_GET['faculty_id'] ?? '';
 $faculty_name = $_GET['faculty_name'] ?? '';
@@ -226,43 +235,40 @@ $conn->close();
 <script>
 document.getElementById('searchInput').addEventListener('keyup', function() {
     var filter = this.value.toLowerCase();
-    var rows = document.querySelectorAll('#attendanceTable tbody tr');
-    var found = false;
-    var visibleCount = 0;
-    rows.forEach(function(row) {
-        var rollNo = row.cells[0].textContent.toLowerCase();                            
-        var studentId = row.cells[1].textContent.toLowerCase();
-        var studentName = row.cells[2].textContent.toLowerCase();
+    // Remove any previous no-results placeholder before filtering
+    var prevNo = document.getElementById('noResultsRow');
+    if (prevNo) prevNo.remove();
 
-        if (rollNo.includes(filter)||studentId.includes(filter) || studentName.includes(filter)) {
+    var rows = Array.from(document.querySelectorAll('#attendanceTable tbody tr'));
+    var visibleCount = 0;
+
+    rows.forEach(function(row) {
+        // skip placeholder rows that don't represent students (less than 3 cells or with id)
+        if (row.id === 'noResultsRow' || row.cells.length < 3) return;
+
+        var rollNo = (row.cells[0].textContent || '').toLowerCase();
+        var studentId = (row.cells[1].textContent || '').toLowerCase();
+        var studentName = (row.cells[2].textContent || '').toLowerCase();
+
+        if (filter === '' || rollNo.indexOf(filter) !== -1 || studentId.indexOf(filter) !== -1 || studentName.indexOf(filter) !== -1) {
             row.style.display = '';
-            found = true;
             visibleCount++;
         } else {
             row.style.display = 'none';
         }
     });
 
-    var noResultsRow = document.getElementById('noResultsRow');
-    if (noResultsRow) {
-        noResultsRow.parentNode.removeChild(noResultsRow);
-    }
-
-    // Only show "No results found" if there are zero visible rows
-    if (filter !== "" && visibleCount === 0) {
+    // Only show "No results found" if search is non-empty and no student rows are visible
+    if (filter.trim() !== '' && visibleCount === 0) {
         var tbody = document.querySelector('#attendanceTable tbody');
         var tr = document.createElement('tr');
         tr.id = 'noResultsRow';
         var td = document.createElement('td');
         td.colSpan = <?php echo count($dates) + 5; ?>;
-        td.className = "text-center text-muted";
-        td.textContent = "No results found";
+        td.className = 'text-center text-muted';
+        td.textContent = 'No results found';
         tr.appendChild(td);
         tbody.appendChild(tr);
     }
 });
 </script>
-
-
-
-
