@@ -6,11 +6,7 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "attendance_management_system";
-
+include 'db-connect.php';
 $conn = new mysqli($host, $user, $pass, $db);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -271,3 +267,4 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     }
 });
 </script>
+
