@@ -6,10 +6,7 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
 
 $userID = $_SESSION['userID'];
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "attendance_management_system";
+include "db_connect.php";
 
 $conn = new mysqli($host, $user, $pass, $db);
 if($conn->connect_error) die("Connection failed: " . $conn->connect_error);
@@ -240,4 +237,5 @@ $conn->close();
 
 </body>
 </html>
+
 
