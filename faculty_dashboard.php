@@ -6,7 +6,15 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include "db_connect.php";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "attendance_management_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
 $facultyID = $_SESSION['userID'];
 
@@ -63,11 +71,12 @@ $conn->close();
         .main-content {
             padding-bottom: 80px; /* space for footer */
         }
-        h1 { color: #1f2937; margin-left:300px; font-weight: 600; font-size: 1.9rem; }
+    h1 { color: #1f2937; margin: 0; font-weight: 600; font-size: 1.6rem; }
 
-        /* Header */
-        .header { margin-bottom: 20px; }
-        .header .brand { display: flex; align-items: center; gap: 12px; }
+    /* Header */
+    .header { margin-bottom: 20px; }
+    .header .brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .brand .welcome { color: #6b7280; font-size: 0.95rem; }
 
         /* Info card */
         .info-box {
@@ -112,6 +121,11 @@ $conn->close();
             .info-box { padding: 14px; margin: 0 8px 16px; }
             h1 { font-size: 1.5rem; }
             .header .btn { padding: 6px 10px; font-size: 0.85rem; }
+            /* Logout button full width on very small screens */
+            .logout-btn { width: 100%; }
+        }
+        @media (min-width: 577px) {
+            .logout-btn { width: auto; }
         }
     </style>
 </head>
@@ -120,13 +134,13 @@ $conn->close();
     <div class="container main-content">
         <!-- Header -->
         <div class="row align-items-center mb-3">
-            <div class="col-8 col-sm-9">
+            <div class="col-12 col-sm-9 mb-2 mb-sm-0">
                 <div class="brand">
                     <h1 class="mb-0">Faculty Dashboard</h1>
                 </div>
             </div>
-            <div class="col-4 col-sm-3 text-end">
-                <a href="index.php" class="btn btn-primary">Logout</a>
+            <div class="col-12 col-sm-3 text-sm-end">
+                <a href="index.php" class="btn btn-primary logout-btn">Logout</a>
             </div>
         </div>
 <br>
@@ -205,5 +219,3 @@ $conn->close();
     </footer>
 </body>
 </html>
-
-
