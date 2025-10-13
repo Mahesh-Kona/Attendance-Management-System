@@ -30,6 +30,7 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Download Attendance Report</title>
      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
@@ -466,3 +467,4 @@ $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
 exit;
 ?>
+
