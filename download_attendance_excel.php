@@ -33,106 +33,93 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
     <title>Download Attendance Report</title>
      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-    /* Responsive form layout */
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    body {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        background: #f4f7fa;
-        -webkit-font-smoothing:antialiased;
-    }
-    .container {
-        background: #ffffff;
-        padding: 18px 18px 16px;
-        border-radius: 12px;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
-        width: 100%;
-        max-width: 480px;
-        text-align: center;
-        margin: 18px auto;
-        flex: 1 0 auto;
-        box-sizing: border-box;
-    }
-    .header-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 10px 12px;
-        flex-wrap: wrap;
-    }
-    .header-bar h1 { font-size: 1.5rem; margin: 0; }
-    h3 {
-        margin: 8px 0 14px;
-        color: #2c3e50;
-        font-size: 1rem;
-        font-weight: 600;
-    }
-    label {
-        display: block;
-        margin: 8px 0 6px;
-        font-weight: 600;
-        color: #34495e;
-        text-align: left;
-        font-size: 0.92rem;
-    }
-    select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-size: 15px;
-        box-sizing: border-box;
-    }
-    /* Use Bootstrap button but ensure comfortable tap target */
-    .container .btn-primary {
-        margin-top: 12px;
-        width: 100%;
-        padding: 10px 12px;
-        border-radius: 8px;
-        font-weight: 600;
-    }
+   html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f4f7fa;
+    -webkit-font-smoothing: antialiased;
+}
+.container {
+    background: #ffffff;
+    padding: 18px 18px 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    margin: 18px auto;
+    flex: 1 0 auto;
+    box-sizing: border-box;
+}
+.header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    flex-wrap: wrap;
+}
+.header-bar h1 { font-size: 1.5rem; margin: 0; }
+h3 {
+    margin: 8px 0 14px;
+    color: #2c3e50;
+    font-size: 1rem;
+    font-weight: 600;
+}
+label {
+    display: block;
+    margin: 8px 0 6px;
+    font-weight: 600;
+    color: #34495e;
+    text-align: left;
+    font-size: 0.92rem;
+}
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+.container .btn-primary {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+.form-row { display: flex; gap: 10px; }
+.form-row .col { flex: 1; }
 
-    /* compact form rows */
-    .form-row { display:flex; gap:10px; }
-    .form-row .col { flex:1; }
-    footer {
-        background: #002147;
-        color: #fff;
-        text-align: center;
-        padding: 12px 0;
-        font-size: 0.9rem;
-        width: 100%;
-        box-sizing: border-box;
-        position: static;
-        margin-top: auto;
-    }
+footer {
+    background: #002147;
+    color: #fff;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    position: static;
+    margin-top: auto;
+}
 
-    /* Small screens tweaks */
-    @media (max-width: 576px) {
-        .header-bar { padding: 8px 12px; }
-        .header-bar h1 { font-size: 1.05rem; text-align: center; width: 100%; }
-        .header-bar a.btn { width: 100%; }
-        .container { padding: 14px; margin: 12px; }
-        h3 { font-size: 1rem; }
-        label { margin-top: 10px; }
-    }
-    /* Grow-down effect: form will expand vertically and occupy space */
-    .grow-down { 
-        overflow: hidden;
-        transform-origin: top center;
-        animation: growDown 3s ease-in-out infinite alternate;
-    }
-    @keyframes growDown {
-        0% { max-height: 160px; }
-        50% { max-height: 420px; }
-        100% { max-height: 700px; }
-    }
+/* Mobile tweaks */
+@media (max-width: 576px) {
+    .header-bar { padding: 8px 12px; }
+    .header-bar h1 { font-size: 1.05rem; text-align: center; width: 100%; }
+    .header-bar a.btn { width: 100%; }
+    .container { padding: 14px; margin: 12px; }
+    h3 { font-size: 1rem; }
+    label { margin-top: 10px; }
+}
+
     </style>
 </head>
 <body>
