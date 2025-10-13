@@ -33,45 +33,67 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
     <title>Download Attendance Report</title>
      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-   html, body {
+  html, body {
     height: 100%;
     margin: 0;
     padding: 0;
 }
+
 body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     background: #f4f7fa;
     -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
-.container {
-    background: #ffffff;
-    padding: 18px 18px 16px;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
-    width: 100%;
-    max-width: 480px;
-    text-align: center;
-    margin: 18px auto;
-    flex: 1 0 auto;
-    box-sizing: border-box;
-}
+
+/* Header fixed at the very top */
 .header-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 12px;
+    padding: 10px 16px;
+    z-index: 1000;
     flex-wrap: wrap;
 }
-.header-bar h1 { font-size: 1.5rem; margin: 0; }
+
+.header-bar h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: #002147;
+}
+
+.header-bar a.btn {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+}
+
+/* Center form container vertically below header */
+.container {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    width: 90%;
+    max-width: 420px;
+    margin: auto; /* centers horizontally */
+    margin-top: 80px; /* space below fixed header */
+    margin-bottom: 70px; /* space above fixed footer */
+    text-align: center;
+    box-sizing: border-box;
+}
+
 h3 {
     margin: 8px 0 14px;
     color: #2c3e50;
     font-size: 1rem;
     font-weight: 600;
 }
+
 label {
     display: block;
     margin: 8px 0 6px;
@@ -80,6 +102,7 @@ label {
     text-align: left;
     font-size: 0.92rem;
 }
+
 select {
     width: 100%;
     padding: 10px;
@@ -88,6 +111,7 @@ select {
     font-size: 15px;
     box-sizing: border-box;
 }
+
 .container .btn-primary {
     margin-top: 12px;
     width: 100%;
@@ -95,29 +119,49 @@ select {
     border-radius: 8px;
     font-weight: 600;
 }
-.form-row { display: flex; gap: 10px; }
+
+/* Form row layout */
+.form-row { 
+    display: flex; 
+    gap: 10px; 
+}
 .form-row .col { flex: 1; }
 
+/* Footer fixed at bottom */
 footer {
     background: #002147;
     color: #fff;
     text-align: center;
-    padding: 12px 0;
+    padding: 10px 0;
     font-size: 0.9rem;
     width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
     box-sizing: border-box;
-    position: static;
-    margin-top: auto;
 }
 
-/* Mobile tweaks */
+/* Mobile adjustments */
 @media (max-width: 576px) {
-    .header-bar { padding: 8px 12px; }
-    .header-bar h1 { font-size: 1.05rem; text-align: center; width: 100%; }
-    .header-bar a.btn { width: 100%; }
-    .container { padding: 14px; margin: 12px; }
-    h3 { font-size: 1rem; }
-    label { margin-top: 10px; }
+    .header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 12px;
+    }
+    .header-bar h1 {
+        font-size: 1rem;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 6px;
+    }
+    .header-bar a.btn {
+        width: 100%;
+    }
+    .container {
+        margin-top: 100px;
+        margin-bottom: 80px;
+        padding: 16px;
+    }
 }
 
     </style>
