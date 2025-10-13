@@ -6,7 +6,16 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include 'db_connect.php';
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "attendance_management_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
 $facultyID = $_SESSION['userID'];
 
 // Fetch faculty details from userfaculty
@@ -37,95 +46,121 @@ $conn->close();
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Faculty Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Reset and base */
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
             overflow-x: hidden; /* Prevent horizontal scroll bar */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         body {
             min-height: 100vh;
-            background: #f5f5f5;
-            font-family: Arial, sans-serif;
+            background: linear-gradient(180deg, #f7f9fc 0%, #f5f7fb 100%);
+            font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
-            position: relative;
+            color: #222;
+            box-sizing: border-box;
         }
         .main-content {
-            padding-bottom: 60px; /* space for footer */
+            padding-bottom: 80px; /* space for footer */
         }
-        h1 { color: #333; margin: 0;text-align: center; }
+        h1 { color: #1f2937; margin-left:400px; font-weight: 600; font-size: 1.9rem; }
 
-        .header {
-            position: relative;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header h2 { margin: 0; }
-        .header a {
-            position: absolute;
-            right: 0;
-            top: 0;
-        }
+        /* Header */
+        .header { margin-bottom: 20px; }
+        .header .brand { display: flex; align-items: center; gap: 12px; }
 
+        /* Info card */
         .info-box {
             background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            width: 50%;
+            padding: 18px;
+            border-radius: 10px;
+            max-width: 920px;
             margin: 0 auto 20px auto;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 18px rgba(20,30,50,0.06);
             text-align: left;
         }
 
-        a.button { display: inline-block; padding: 10px 15px; background: #007bff; color: #fff; text-decoration: none; border-radius: 5px; }
-        a.button:hover { background: #0056b3; }
-        a.link { color: #007bff; text-decoration: none; }
-        a.link:hover { text-decoration: underline; }
+        /* Links and buttons */
+        a.button { display: inline-block; padding: 8px 14px; color: #fff; text-decoration: none; border-radius: 6px; }
+       
+
+        /* Footer - fixed to bottom */
         footer {
-            background: #002147;
-            color: #fff;
+            background: #03203f;
+            color: #e6eef8;
             text-align: center;
-            padding: 15px 0;
+            padding: 14px 12px;
             font-size: 0.9rem;
-            position: absolute;
+            position: fixed;
             left: 0;
             right: 0;
             bottom: 0;
             width: 100%;
             box-sizing: border-box;
+            border-radius: 6px 6px 0 0;
+            z-index: 999;
         }
-        .table {
-            width: 100%;
-            min-width: 900px;
-            box-sizing: border-box;
-            overflow-x: auto;
+
+        /* Prevent content from being hidden behind fixed footer */
+        .main-content { padding-bottom: 90px; }
+
+        /* Make tables responsive and look clean on small screens */
+        .table thead th { vertical-align: middle; }
+        .action-btns a { margin-right: 6px; margin-bottom: 6px; }
+
+        @media (max-width: 576px) {
+            .info-box { padding: 14px; margin: 0 8px 16px; }
+            h1 { font-size: 1.5rem; }
+            .header .btn { padding: 6px 10px; font-size: 0.85rem; }
         }
     </style>
 </head>
 <body style="position:relative; min-height:100vh;">
 
-    <!-- Header -->
-    <div class="header">
-        
-        <h1>Faculty Dashboard</h1>
-        <a href="index.php" class="btn btn-primary" >Logout</a>
-    </div>
-    <div class="main-content">
+    <div class="container main-content">
+        <!-- Header -->
+        <div class="row align-items-center mb-3">
+            <div class="col-8 col-sm-9">
+                <div class="brand">
+                    <h1 class="mb-0">Faculty Dashboard</h1>
+                </div>
+            </div>
+            <div class="col-4 col-sm-3 text-end">
+                <a href="index.php" class="btn btn-primary">Logout</a>
+            </div>
+        </div>
+<br>
         <!-- Faculty Info Box -->
         <div class="info-box">
-            <p><b>Faculty ID:</b> <?php echo htmlspecialchars($facultyID); ?></p>
-            <p><b>Faculty Name:</b> <?php echo htmlspecialchars($facultyName); ?></p>
-            <p><b>Department:</b> <?php echo htmlspecialchars($dept); ?></p>
+            <div class="row">
+                <div class="col-12 col-md-4">
+                    <p class="mb-1"><strong>Faculty ID</strong></p>
+                    <div class="text-muted small"><?php echo htmlspecialchars($facultyID); ?></div>
+                </div>
+                <div class="col-12 col-md-5">
+                    <p class="mb-1"><strong>Faculty Name</strong></p>
+                    <div class="text-muted small"><?php echo htmlspecialchars($facultyName); ?></div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <p class="mb-1"><strong>Department</strong></p>
+                    <div class="text-muted small"><?php echo htmlspecialchars($dept); ?></div>
+                </div>
+            </div>
         </div>
 
-        <br><br>
-        <h3>Your Allotted Subjects:</h3>
+        <h4 class="mt-3">Your Allotted Subjects</h4>
 
-        <!-- Your old table kept as-is -->
-        <table class="table table-bordered table-striped">
+        <!-- Responsive table wrapper -->
+        <div class="table-responsive shadow-sm rounded bg-white mt-2">
+            <table class="table table-bordered table-striped mb-0">
             <thead class="table-primary">
                 <tr>
                     <th>Subject Code</th>
@@ -169,13 +204,12 @@ $conn->close();
                     </tr>
                 <?php } ?>
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
+
     <footer>
         &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
     </footer>
 </body>
 </html>
-
-
-
