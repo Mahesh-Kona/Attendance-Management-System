@@ -48,107 +48,138 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Forgot Password</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style> 
-  .portal-header {
-                height: 92px;
-                padding: 8px 0;
-                text-align: center;
-                color: darkred;
-                position: relative;
-                box-sizing: border-box;
-                font-family:roboto;
-            }
-            .portal-header h1 { margin: 0; font-size: 2.3rem; font-weight: 600; }
-            .portal-header h2 { margin: 2px 0 0 0; font-size: 1.9rem; }
-            .portal-header img { height: 56px; position: absolute; }
-                        body {
-                            background-color: #f4f6f9;
-                            display: flex;
-                            flex-direction: column;
-                            min-height: 100vh;
-                            margin: 0;
-                        }
-                        .container {
-                            flex: 1 0 auto;
-                        }
-                        footer {
-                                height: 56px;
-                                background: #002147;
-                                color: #fff;
-                                text-align: center;
-                                padding: 12px 0;
-                                font-size: 0.9rem;
-                                flex-shrink: 0;
-                        }
-   </style>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root{ --primary:#002147; --muted:#f4f6f9; --card-radius:14px; }
+    html,body{ height:100%; margin:0; padding:0; font-family:'Roboto',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial; background:var(--muted); color:#222; }
+    .page-root{ display:flex; flex-direction:column; min-height:100vh; }
+    header.portal-header{ padding:0.6rem 0; }
+    .portal-brand{ display:flex; align-items:center; gap:1rem; }
+    .portal-brand img{ height:72px; width:auto; border-radius:8px; }
+    .portal-text h1{ margin:0; font-size:1.125rem; font-weight:700; color:var(--primary); }
+        .portal-text h2{ margin:0; font-size:0.95rem; font-weight:500; color:#333; }
+    main{ flex:1 0 auto; display:flex; align-items:center; justify-content:center; padding:1.25rem; }
+    .auth-card{ width:100%; max-width:520px; background:#fff; padding:1.5rem; border-radius:var(--card-radius); box-shadow:0 6px 22px rgba(2,17,48,0.08); }
+    .muted-small{ color:#6c757d; font-size:0.9rem; }
+    footer{ background:var(--primary); color:#fff; text-align:center; padding:0.8rem 0; font-size:0.9rem; }
+    @media (max-width:576px){ .portal-brand img{ height:56px; } .auth-card{ padding:1rem; } }
+     @media (max-width:576px){
+            .portal-brand img{ height:56px; }
+            .portal-text h1{ font-size:1rem; }
+            .portal-text h2{ font-size:0.85rem; }
+            main{ padding:0.75rem; }
+            .auth-card{ padding:1rem; }
+        }
+        @media (min-width:992px){
+            .portal-text h1{ font-size:1.35rem; }
+            .portal-text h2{ font-size:1.05rem; }
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="portal-header">
-     <img src="rgukt.jpg" alt="RGUKT Logo" style="height:80px; position:absolute; left:140px; top:3px;">
-    <h1>Rajiv Gandhi University of Knowledge Technologies Nuzvid</h1>
-    <!-- <h3>Catering to the educational needs of gifted rural youth of Andhra Pradesh</h3> -->
-    <h2>Attendance Management System</h2>
-    <!-- <p class="mb-0">Efficient | Reliable | Academic Excellence</p> -->
-  </div>
-<div class="container mt-5">
-    <div class="card shadow p-4 mx-auto" style="max-width: 500px;">
-        <h2 class="text-center mb-4">Forgot Password</h2>
-
-        <?php if ($step == 1) { ?>
-            <!-- Step 1: Enter Role and User ID -->
-            <form method="POST" action="">
-                <div class="mb-3">
-                    <label class="form-label">Select Role</label>
-                    <select name="role" id="roleSelect" class="form-control" required onchange="showDept(this.value)">
-                        <option value="">--Select Role--</option>
-                        <option value="faculty">Faculty</option>
-                        <option value="student">Student</option>
-                        <option value="dept_office">Department Office</option>
-                        <option value="hod">HOD</option>
-                        <option value="dean">Dean of Academics</option>
-                    </select>
+<body>
+<div class="page-root">
+    <header class="portal-header container">
+        <div class="d-flex align-items-center justify-content-between py-2">
+            <div class="portal-brand">
+                <img src="rgukt.jpg" alt="RGUKT Logo" onerror="this.style.display='none'">
+                <div class="portal-text">
+                    <h1>Rajiv Gandhi University of Knowledge Technologies Nuzvid</h1>
+                    <h2 class="muted-small">Attendance Management System</h2>
                 </div>
+            </div>
+            <div class="d-none d-md-block text-end"><span class="muted-small">Efficient • Reliable • Academic Excellence</span></div>
+        </div>
+    </header>
 
-                
+    <main>
+        <div class="auth-card">
+            <h2 class="text-center mb-3">Forgot Password</h2>
 
-                <div class="mb-3">
-                    <label class="form-label">User ID</label>
-                    <input type="text" name="userID" class="form-control" required>
-                </div>
-                <button type="submit" name="check_user" class="btn btn-primary w-100">Next</button><br><br>
-                <center>
-                <a href="index.php" class="link">Login</a></center>
-        </form>
+            <?php if ($step == 1) { ?>
+                <form method="POST" action="">
+                    <div class="mb-3">
+                        <label class="form-label">Select Role</label>
+                        <select name="role" id="roleSelect" class="form-select" required onchange="showDept(this.value)">
+                            <option value="">--Select Role--</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="student">Student</option>
+                            <option value="dept_office">Department Office</option>
+                            <option value="hod">HOD</option>
+                            <option value="dean">Dean of Academics</option>
+                        </select>
+                    </div>
 
-        <?php } elseif ($step == 2) { ?>
-            <!-- Step 2: Show security question and ask for answer + new password -->
-            <form method="POST" action="">
-                <input type="hidden" name="role" value="<?php echo $role; ?>">
-                <input type="hidden" name="userID" value="<?php echo $userID; ?>">
-                <input type="hidden" name="dept" value="<?php echo isset($_POST['dept']) ? $_POST['dept'] : ''; ?>">
+                    <div class="mb-3" id="deptDiv" style="display:none;">
+                        <label class="form-label">Select Department</label>
+                        <select name="dept" class="form-select">
+                            <option value="">--Select Department--</option>
+                            <option value="Computer Science & Engineering">CSE</option>
+                            <option value="Electronics & Communication Engineering">ECE</option>
+                            <option value="Electrical & Electronics Engineering">EEE</option>
+                            <option value="Mechanical Engineering">MECH</option>
+                            <option value="Civil Engineering">CIVIL</option>
+                            <option value="Chemical Engineering">CHEMICAL</option>
+                        </select>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Security Question</label>
-                    <input type="text" class="form-control" value="<?php echo $security_question; ?>" readonly>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Answer (one word)</label>
-                    <input type="text" name="answer" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">New Password</label>
-                    <input type="password" name="new_password" class="form-control" required>
-                </div>
-                <button type="submit" name="reset_pass" class="btn btn-primary w-100">Reset Password</button><br><br>
-                <center>
-                <a href="index.php" class="link">Login</a></center>
-            </form>
-        <?php } ?>
+                    <div class="mb-3">
+                        <label class="form-label">User ID</label>
+                        <input type="text" name="userID" class="form-control" required>
+                    </div>
 
-    </div>
+                    <button type="submit" name="check_user" class="btn btn-primary w-100">Next</button>
+                    <div class="text-center mt-3"><a href="index.php">Login</a></div>
+                </form>
+
+            <?php } elseif ($step == 2) { ?>
+                <form method="POST" action="">
+                    <input type="hidden" name="role" value="<?php echo $role; ?>">
+                    <input type="hidden" name="userID" value="<?php echo $userID; ?>">
+                    <input type="hidden" name="dept" value="<?php echo isset($_POST['dept']) ? $_POST['dept'] : ''; ?>">
+
+                    <div class="mb-3">
+                        <label class="form-label">Security Question</label>
+                        <input type="text" class="form-control" value="<?php echo $security_question; ?>" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Answer (one word)</label>
+                        <input type="text" name="answer" class="form-control" required>
+                    </div>
+                    <div class="mb-3 position-relative">
+                        <label class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input id="newPassword" type="password" name="new_password" class="form-control" required>
+                            <button id="toggleNewPwd" type="button" class="btn btn-outline-secondary" tabindex="-1"><i class="fa fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" name="reset_pass" class="btn btn-primary w-100">Reset Password</button>
+                    <div class="text-center mt-3"><a href="index.php">Login</a></div>
+                </form>
+            <?php } ?>
+
+        </div>
+    </main>
+
+    <footer>
+        &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+    </footer>
 </div>
-<footer>
-    &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
-</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function showDept(role) {
+    var el = document.getElementById('deptDiv');
+    if(role === 'dept_office' || role === 'hod') el.style.display = 'block'; else el.style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    var newPwd = document.getElementById('newPassword');
+    var toggle = document.getElementById('toggleNewPwd');
+    if(toggle && newPwd){
+        toggle.addEventListener('click', function(e){ e.preventDefault(); if(newPwd.type==='password'){ newPwd.type='text'; toggle.innerHTML='<i class="fa fa-eye-slash"></i>'; } else { newPwd.type='password'; toggle.innerHTML='<i class="fa fa-eye"></i>'; } });
+    }
+});
+</script>
 </body>
 </html>
