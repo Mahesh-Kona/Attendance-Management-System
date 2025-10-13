@@ -220,7 +220,7 @@ $conn->close();
     </main>
 
     <footer>
-        &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
+        The Admin Mahesh&copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
     </footer>
 </div>
 
@@ -247,3 +247,4 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 </body>
 </html>
+
