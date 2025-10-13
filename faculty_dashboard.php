@@ -63,7 +63,7 @@ $conn->close();
         .main-content {
             padding-bottom: 80px; /* space for footer */
         }
-        h1 { color: #1f2937; margin-left:400px; font-weight: 600; font-size: 1.9rem; }
+        h1 { color: #1f2937; margin-left:300px; font-weight: 600; font-size: 1.9rem; }
 
         /* Header */
         .header { margin-bottom: 20px; }
@@ -205,4 +205,5 @@ $conn->close();
     </footer>
 </body>
 </html>
+
 
