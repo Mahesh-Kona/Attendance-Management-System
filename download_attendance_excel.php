@@ -48,13 +48,13 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
     }
     .container {
         background: #ffffff;
-        padding: 28px;
+        padding: 18px 18px 16px;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
         width: 100%;
-        max-width: 520px;
+        max-width: 480px;
         text-align: center;
-        margin: 24px auto;
+        margin: 18px auto;
         flex: 1 0 auto;
         box-sizing: border-box;
     }
@@ -66,20 +66,20 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
         padding: 10px 12px;
         flex-wrap: wrap;
     }
-    .header-bar h1 { font-size: 1.25rem; margin: 0; }
+    .header-bar h1 { font-size: 1.5rem; margin: 0; }
     h3 {
-        margin-bottom: 18px;
+        margin: 8px 0 14px;
         color: #2c3e50;
-        font-size: 1.05rem;
+        font-size: 1rem;
         font-weight: 600;
     }
     label {
         display: block;
-        margin: 12px 0 6px;
+        margin: 8px 0 6px;
         font-weight: 600;
         color: #34495e;
         text-align: left;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
     }
     select {
         width: 100%;
@@ -91,12 +91,16 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
     }
     /* Use Bootstrap button but ensure comfortable tap target */
     .container .btn-primary {
-        margin-top: 16px;
+        margin-top: 12px;
         width: 100%;
         padding: 10px 12px;
         border-radius: 8px;
         font-weight: 600;
     }
+
+    /* compact form rows */
+    .form-row { display:flex; gap:10px; }
+    .form-row .col { flex:1; }
     footer {
         background: #002147;
         color: #fff;
@@ -114,7 +118,7 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
         .header-bar { padding: 8px 12px; }
         .header-bar h1 { font-size: 1.05rem; text-align: center; width: 100%; }
         .header-bar a.btn { width: 100%; }
-        .container { padding: 18px; margin: 16px; }
+        .container { padding: 14px; margin: 12px; }
         h3 { font-size: 1rem; }
         label { margin-top: 10px; }
     }
@@ -130,37 +134,48 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
     <div class="container">
         <h3>Download Attendance Sheet</h3>
         <form method="post">
-            <label>Year:</label>
-            <select name="year" required>
-                <option value="">--Select--</option>
-                <option value="E1">E1</option>
-                <option value="E2">E2</option>
-                <option value="E3">E3</option>
-                <option value="E4">E4</option>
-            </select>
+            <div class="row form-row">
+                <div class="col col-12 col-md-6">
+                    <label>Year:</label>
+                    <select name="year" required>
+                        <option value="">--Select--</option>
+                        <option value="E1">E1</option>
+                        <option value="E2">E2</option>
+                        <option value="E3">E3</option>
+                        <option value="E4">E4</option>
+                    </select>
+                </div>
+                <div class="col col-12 col-md-6">
+                    <label>Semester:</label>
+                    <select name="semester" required>
+                        <option value="">--Select--</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+            </div>
 
-            <label>Semester:</label>
-            <select name="semester" required>
-                <option value="">--Select--</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-            </select>
+            <div class="row form-row">
+                <div class="col col-12 col-md-6">
+                    <label>Academic Year:</label>
+                    <select name="academic_year" required>
+                        <option value="">--Select--</option>
+                        <option value="2025-26">2025-26</option>
+                        <option value="2026-27">2026-27</option>
+                    </select>
+                </div>
+                <div class="col col-12 col-md-6">
+                    <label>Exam:</label>
+                    <select name="month" required>
+                        <option value="">--Select--</option>
+                        <option value="All">Full Semester</option>
+                        <option value="MT-1">MT-1</option>
+                        <option value="MT-2">MT-2</option>
+                        <option value="MT-3">MT-3</option>
+                    </select>
+                </div>
+            </div>
 
-            <label>Academic Year:</label>
-            <select name="academic_year" required>
-                <option value="">--Select--</option>
-                <option value="2025-26">2025-26</option>
-                <option value="2026-27">2026-27</option>
-            </select>
-
-            <label>Exam:</label>
-            <select name="month" required>
-                <option value="">--Select--</option>
-                <option value="All">Full Semester</option>
-                <option value="MT-1">MT-1</option>
-                <option value="MT-2">MT-2</option>
-                <option value="MT-3">MT-3</option>
-</select>
             <button type="submit" class='btn btn-primary'>Download</button>
         </form>
     </div>
