@@ -170,7 +170,7 @@ footer {
 <body>
  <div class="header-bar">
     <h1>Department of <?php echo htmlspecialchars($dept); ?></h1>
-    <a href="dept_office_dashboard.php" class='btn btn-primary'>Dashboard</a>
+    <a href="dept_office_dashboard.php" class='btn btn-primary'>Back to Dashboard</a>
 </div>
 
     <!-- Form -->
@@ -467,4 +467,5 @@ $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
 exit;
 ?>
+
 
