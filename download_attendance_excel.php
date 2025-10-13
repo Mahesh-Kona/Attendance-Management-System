@@ -33,6 +33,7 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
     <title>Download Attendance Report</title>
      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
+    /* Responsive form layout */
     html, body {
         height: 100%;
         margin: 0;
@@ -43,69 +44,79 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
         display: flex;
         flex-direction: column;
         background: #f4f7fa;
+        -webkit-font-smoothing:antialiased;
     }
     .container {
         background: #ffffff;
-        padding: 40px;
+        padding: 28px;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        width: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        width: 100%;
+        max-width: 520px;
         text-align: center;
-        margin: 40px auto;
+        margin: 24px auto;
         flex: 1 0 auto;
+        box-sizing: border-box;
     }
     .header-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 30px;
+        gap: 12px;
+        padding: 10px 12px;
+        flex-wrap: wrap;
     }
-    h1 {
-        margin-left: 200px;
-    }
+    .header-bar h1 { font-size: 1.25rem; margin: 0; }
     h3 {
-        margin-bottom: 20px;
+        margin-bottom: 18px;
         color: #2c3e50;
-        font-size: 20px;
+        font-size: 1.05rem;
+        font-weight: 600;
     }
     label {
         display: block;
-        margin: 15px 0 8px;
+        margin: 12px 0 6px;
         font-weight: 600;
         color: #34495e;
         text-align: left;
+        font-size: 0.95rem;
     }
     select {
         width: 100%;
         padding: 10px;
-        border: 1px solid #ccc;
+        border: 1px solid #d1d5db;
         border-radius: 6px;
         font-size: 15px;
+        box-sizing: border-box;
     }
-    button {
-        margin-top: 25px;
+    /* Use Bootstrap button but ensure comfortable tap target */
+    .container .btn-primary {
+        margin-top: 16px;
         width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background 0.3s;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-weight: 600;
     }
     footer {
         background: #002147;
         color: #fff;
         text-align: center;
-        padding: 15px 0;
+        padding: 12px 0;
         font-size: 0.9rem;
         width: 100%;
-        left: 0;
-        right: 0;
-        bottom: 0;
         box-sizing: border-box;
         position: static;
         margin-top: auto;
+    }
+
+    /* Small screens tweaks */
+    @media (max-width: 576px) {
+        .header-bar { padding: 8px 12px; }
+        .header-bar h1 { font-size: 1.05rem; text-align: center; width: 100%; }
+        .header-bar a.btn { width: 100%; }
+        .container { padding: 18px; margin: 16px; }
+        h3 { font-size: 1rem; }
+        label { margin-top: 10px; }
     }
     </style>
 </head>
