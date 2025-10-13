@@ -84,23 +84,19 @@ $conn->close();
         a.button { display: inline-block; padding: 8px 14px; color: #fff; text-decoration: none; border-radius: 6px; }
        
 
-        /* Footer - fixed to bottom */
-        footer {
+       footer {
             background: #03203f;
             color: #e6eef8;
             text-align: center;
             padding: 14px 12px;
             font-size: 0.9rem;
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: relative;
             width: 100%;
             box-sizing: border-box;
-            border-radius: 6px 6px 0 0;
-            z-index: 999;
+            border-radius: 6px;
+            margin-top: 30px;
+            flex-shrink: 0; /* do not let footer shrink */
         }
-
         /* Prevent content from being hidden behind fixed footer */
         .main-content { padding-bottom: 90px; }
 
@@ -210,4 +206,5 @@ $conn->close();
     </footer>
 </body>
 </html>
+
 
