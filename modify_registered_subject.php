@@ -256,19 +256,18 @@ $stmt->close();
                 </tbody>
             </table>
         </div>
-    </div>
-    <p style="text-align:center; color:#555; font-style:italic; margin-top:10px;">
-        <b>Note:</b> Only the subjects whose registered time is less than or equal to a month can be edited.
-    </p>
-    
-    <!-- Pagination block below the table -->
+           <!-- Pagination block below the table -->
     <div class="d-flex justify-content-center mt-3">
         <nav>
             <ul id="pagination" class="pagination mb-0"></ul>
             <span id="pageInfo" class="ms-3 align-self-center text-muted"></span>
         </nav>
     </div>
-  
+    </div>
+    <p style="text-align:center; color:#555; font-style:italic; margin-top:10px;">
+        <b>Note:</b> Only the subjects whose registered time is less than or equal to a month can be edited.
+    </p>
+
     <br>
     <footer>
         &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
@@ -423,5 +422,6 @@ $stmt->close();
     </script>
 </body>
 </html>
+
 
 
