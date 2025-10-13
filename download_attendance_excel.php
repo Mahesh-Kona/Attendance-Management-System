@@ -122,6 +122,17 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
         h3 { font-size: 1rem; }
         label { margin-top: 10px; }
     }
+    /* Grow-down effect: form will expand vertically and occupy space */
+    .grow-down { 
+        overflow: hidden;
+        transform-origin: top center;
+        animation: growDown 3s ease-in-out infinite alternate;
+    }
+    @keyframes growDown {
+        0% { max-height: 160px; }
+        50% { max-height: 420px; }
+        100% { max-height: 700px; }
+    }
     </style>
 </head>
 <body>
@@ -133,7 +144,7 @@ if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_
     <!-- Form -->
     <div class="container">
         <h3>Download Attendance Sheet</h3>
-        <form method="post">
+        <form method="post" class="grow-down">
             <div class="row form-row">
                 <div class="col col-12 col-md-6">
                     <label>Year:</label>
