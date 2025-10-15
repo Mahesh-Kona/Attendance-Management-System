@@ -8,11 +8,6 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
 
 include "db_connect.php";
 
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
 $facultyID = $_SESSION['userID'];
 
 // Fetch faculty details from userfaculty
@@ -230,4 +225,5 @@ $conn->close();
     </footer>
 </body>
 </html>
+
 
