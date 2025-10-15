@@ -6,7 +6,16 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include "db_connect.php";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "attendance_management_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
 $facultyID = $_SESSION['userID'];
 
 // Fetch faculty details from userfaculty
@@ -22,9 +31,10 @@ $facultyName = $faculty['facultyName'];
 $dept = $faculty['dept'];
 
 // Fetch subjects allotted to this faculty from subjects table modify this for every sem
-$sql = "SELECT subject_code, subject_name, credits,date_time, year, section
-        FROM subjects WHERE faculty_id=? AND semester='1' AND academic_year='2025-26' ";
-        $semester=2;
+$sql = "SELECT subject_code, subject_name, credits, date_time, year, section, dept
+    FROM subjects WHERE faculty_id=? AND semester='1' AND academic_year='2025-26' ";
+$semester=1;
+$academic_year='2025-26';        
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $facultyID);
 $stmt->execute();
@@ -38,6 +48,7 @@ $conn->close();
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Faculty Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -52,6 +63,8 @@ $conn->close();
         }
         body {
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
             background: linear-gradient(180deg, #f7f9fc 0%, #f5f7fb 100%);
             font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
@@ -59,7 +72,9 @@ $conn->close();
             box-sizing: border-box;
         }
         .main-content {
-            padding-bottom: 80px; /* space for footer */
+            flex: 1 0 auto; /* allow main to grow */
+            /* Give space for the fixed footer so content isn't hidden behind it */
+            padding-bottom: 80px;
         }
     h1 { color: #1f2937; margin: 0; font-weight: 600; font-size: 1.6rem; }
 
@@ -83,25 +98,36 @@ $conn->close();
         a.button { display: inline-block; padding: 8px 14px; color: #fff; text-decoration: none; border-radius: 6px; }
        
 
-       footer {
+        /* Footer fixed to the viewport bottom and full width */
+        footer {
             background: #03203f;
             color: #e6eef8;
             text-align: center;
             padding: 14px 12px;
             font-size: 0.9rem;
-            position: relative;
+            position: fixed;
+            left: 0;
+            bottom: 0;
             width: 100%;
             box-sizing: border-box;
-            border-radius: 6px;
-            margin-top: 30px;
-            flex-shrink: 0; /* do not let footer shrink */
+            border-radius: 0;
+            margin: 0;
+            /* subtle top shadow so footer stands out above content */
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+            z-index: 9999; /* keep footer above other elements */
         }
-        /* Prevent content from being hidden behind fixed footer */
-        .main-content { padding-bottom: 90px; }
 
-        /* Make tables responsive and look clean on small screens */
-        .table thead th { vertical-align: middle; }
-        .action-btns a { margin-right: 6px; margin-bottom: 6px; }
+    /* keep the bottom padding so the fixed footer doesn't overlap content */
+
+          /* Make tables responsive and look clean on small screens */
+          .table thead th { vertical-align: middle; }
+          .action-btns a { margin-right: 6px; margin-bottom: 6px; }
+
+          /* Increase table horizontal length so columns have more room.
+              .table-wide sets a minimum width and allows horizontal scrolling
+              inside the .table-responsive wrapper. Adjust min-width as needed. */
+          .table-responsive { overflow-x: auto; }
+          .table-wide { min-width: 1200px; white-space: nowrap; }
 
         @media (max-width: 576px) {
             .info-box { padding: 14px; margin: 0 8px 16px; }
@@ -117,7 +143,7 @@ $conn->close();
 </head>
 <body style="position:relative; min-height:100vh;">
 
-    <div class="container main-content">
+    <div class="container-fluid main-content">
         <!-- Header -->
         <div class="row align-items-center mb-3">
             <div class="col-12 col-sm-9 mb-2 mb-sm-0">
@@ -158,6 +184,7 @@ $conn->close();
                     <th>Subject Code</th>
                     <th>Subject Name</th>
                     <th>Credits</th>
+                    <th>Department</th>
                     <th>Year</th>
                     <th>Academic Year</th>
                     <th>Semester</th>
@@ -173,18 +200,19 @@ $conn->close();
                             <td><?php echo htmlspecialchars($row['subject_code']); ?></td>
                             <td><?php echo htmlspecialchars($row['subject_name']); ?></td>
                             <td><?php echo htmlspecialchars($row['credits']); ?></td>
+                             <td><?php echo htmlspecialchars($row['dept']); ?></td>
                             <td><?php echo htmlspecialchars($row['year']); ?></td>
-                            <td><?php echo '2025-26'; ?></td>
-                            <td><?php echo 1; ?></td>
+                            <td><?php echo htmlspecialchars($academic_year); ?></td>
+                            <td><?php echo htmlspecialchars($semester); ?></td>
                             <td><?php echo htmlspecialchars($row['date_time']); ?></td>
                              <td><?php echo htmlspecialchars($row['section']); ?></td>
                             <td>
-                                <a class="btn btn-primary btn-sm" 
-                                   href="attendance_dashboard_for_faculty.php?subject_code=<?php echo urlencode($row['subject_code']); ?>&subject_name=<?php echo urlencode($row['subject_name']); ?>&faculty_id=<?php echo urlencode($facultyID); ?>&faculty_name=<?php echo urlencode($facultyName); ?>&section=<?php echo urlencode($row['section']); ?>&year=<?php echo urlencode($row['year']); ?>">
+                                          <a class="btn btn-primary btn-sm" 
+                                              href="attendance_dashboard_for_faculty.php?subject_code=<?php echo urlencode($row['subject_code']); ?>&subject_name=<?php echo urlencode($row['subject_name']); ?>&faculty_id=<?php echo urlencode($facultyID); ?>&faculty_name=<?php echo urlencode($facultyName); ?>&section=<?php echo urlencode($row['section']); ?>&year=<?php echo urlencode($row['year']); ?>&dept=<?php echo urlencode($row['dept']); ?>&semester=<?php echo urlencode($semester); ?>&academic_year=<?php echo urlencode($academic_year); ?>">
                                     Take Attendance
                                 </a>
                                 <a class="btn btn-success btn-sm" 
-                                   href="view_attendance_records.php?subject_code=<?php echo urlencode($row['subject_code']); ?>&subject_name=<?php echo urlencode($row['subject_name']); ?>&faculty_id=<?php echo urlencode($facultyID); ?>&faculty_name=<?php echo urlencode($facultyName); ?>&section=<?php echo urlencode($row['section']); ?>&year=<?php echo urlencode($row['year']); ?>">
+                                              href="view_attendance_records.php?subject_code=<?php echo urlencode($row['subject_code']); ?>&subject_name=<?php echo urlencode($row['subject_name']); ?>&faculty_id=<?php echo urlencode($facultyID); ?>&faculty_name=<?php echo urlencode($facultyName); ?>&section=<?php echo urlencode($row['section']); ?>&year=<?php echo urlencode($row['year']); ?>&dept=<?php echo urlencode($row['dept']); ?>&semester=<?php echo urlencode($semester); ?>&academic_year=<?php echo urlencode($academic_year); ?>">
                                     View Records
                                 </a>
                             </td>
@@ -192,7 +220,7 @@ $conn->close();
                     <?php } ?>
                 <?php } else { ?>
                     <tr>
-                        <td colspan="9" class="text-center text-muted">No data available</td>
+                        <td colspan="10" class="text-center text-muted">No data available</td>
                     </tr>
                 <?php } ?>
             </tbody>
@@ -205,6 +233,3 @@ $conn->close();
     </footer>
 </body>
 </html>
-
-
-

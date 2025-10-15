@@ -6,7 +6,15 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
     die("Access Denied. This action is only allowed for Faculty users.");
 }
 
-include "db_connect.php";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "attendance_management_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
 // Get query params
 $faculty_id   = $_GET['faculty_id'] ?? '';
@@ -15,18 +23,23 @@ $subject_code = $_GET['subject_code'] ?? '';
 $subject_name = $_GET['subject_name'] ?? '';
 $year         = $_GET['year'] ?? '';
 $section      = $_GET['section'] ?? '';
-
+$dept= $_GET['dept'] ?? '';
+$semester= $_GET['semester'] ?? '';
+$academic_year= $_GET['academic_year'] ?? '';
 // Step 1: Get all unique dates when faculty marked attendance
 $date_sql = "SELECT DATE(time) as class_date
              FROM attendance
              WHERE subject_code = ? 
+             AND dept = ?
                AND faculty_name = ? 
                AND year = ? 
                AND section = ?
+               AND semester = ?
+               AND academic_year = ?
              GROUP BY DATE(time)
              ORDER BY class_date ASC";
 $stmt = $conn->prepare($date_sql);
-$stmt->bind_param("ssss", $subject_code, $faculty_name, $year, $section);
+$stmt->bind_param("sssssss", $subject_code, $dept, $faculty_name, $year, $section, $semester, $academic_year);
 $stmt->execute();
 $date_result = $stmt->get_result();
 $dates = [];
@@ -38,10 +51,10 @@ $stmt->close();
 // Step 2: Get all students in this subject/year/section
 $students_sql = "SELECT studentID as student_id, studentName as student_name 
                  FROM userstudent
-                 WHERE year = ? AND section = ?
+                 WHERE year = ? AND section = ? AND dept = ? AND academic_year = ? AND semester = ?
                  ORDER BY student_id ASC";
 $stmt = $conn->prepare($students_sql);
-$stmt->bind_param("ss", $year, $section);
+$stmt->bind_param("sssss", $year, $section, $dept, $academic_year, $semester);
 $stmt->execute();
 $students_result = $stmt->get_result();
 $students = [];
@@ -53,10 +66,10 @@ $stmt->close();
 // Step 3: Fetch attendance (multiple per day possible)
 $attendance_sql = "SELECT student_id, DATE(time) as class_date, status
                    FROM attendance
-                   WHERE subject_code = ? AND faculty_name = ? AND year = ? AND section = ?
+                   WHERE subject_code = ? AND faculty_name = ? AND year = ? AND section = ? AND dept = ?
                    ORDER BY time ASC";
 $stmt = $conn->prepare($attendance_sql);
-$stmt->bind_param("ssss", $subject_code, $faculty_name, $year, $section);
+$stmt->bind_param("sssss", $subject_code, $faculty_name, $year, $section, $dept);
 $stmt->execute();
 $attendance_result = $stmt->get_result();
 
@@ -158,7 +171,9 @@ $conn->close();
 <div class="info-box mt-3">
     <p><b>Faculty:</b> <?php echo htmlspecialchars($faculty_name); ?></p>
     <p><b>Subject:</b> <?php echo htmlspecialchars($subject_code . " - " . $subject_name); ?></p>
+     <p><b>Department:</b> <?php echo htmlspecialchars($dept); ?></p>
     <p><b>Year:</b> <?php echo htmlspecialchars($year ); ?></p>
+   
     <p><b>Section:</b> <?php echo htmlspecialchars($section); ?></p>
 </div>
 
@@ -264,4 +279,3 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     }
 });
 </script>
-

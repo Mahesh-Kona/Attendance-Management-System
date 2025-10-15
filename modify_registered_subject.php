@@ -9,6 +9,9 @@ if (!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office') {
 
 $dept = $_SESSION['dept'];
 
+// Hardcode academic year filter
+$academic_year = '2025-26'; // modify it for every sem and academic year
+
 // Handle update
 // Handle update
 if (isset($_POST['update'])) {
@@ -55,6 +58,11 @@ $sql = "SELECT * FROM subjects WHERE dept=?";
 $params = [$dept];
 $types = "s";
 
+// Always filter by the hardcoded academic year
+$sql .= " AND academic_year=?";
+$params[] = $academic_year;
+$types .= "s";
+
 if ($yearFilter) {
     $sql .= " AND year=?";
     $params[] = $yearFilter;
@@ -83,7 +91,6 @@ $stmt->close();
 <!DOCTYPE html>
 <html>
 <head>
-    
     <title>Modify Registered Subjects</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -208,6 +215,7 @@ $stmt->close();
                         <th>Year</th>
                         <th>Section</th>
                         <th>Semester</th>
+                    <th>Academic Year</th>
                         <th>Faculty ID</th>
                         <th>Faculty Name</th>
                         <th>Date & Time</th>
@@ -228,6 +236,7 @@ $stmt->close();
                             <td><?php echo $row['year']; ?></td>
                             <td><?php echo $row['section']; ?></td>
                             <td><?php echo $row['semester']; ?></td>
+                            <td><?php echo htmlspecialchars($row['academic_year']); ?></td>
                             <!-- Faculty ID (editable) -->
                             <td>
                                 <span class="text"><?php echo $row['faculty_id']; ?></span>
@@ -256,19 +265,19 @@ $stmt->close();
                 </tbody>
             </table>
         </div>
-           <!-- Pagination block below the table -->
+    </div>
+    <p style="text-align:center; color:#555; font-style:italic; margin-top:10px;">
+        <b>Note:</b> Only the subjects whose registered time is less than or equal to a month can be edited.
+    </p>
+    
+    <!-- Pagination block below the table -->
     <div class="d-flex justify-content-center mt-3">
         <nav>
             <ul id="pagination" class="pagination mb-0"></ul>
             <span id="pageInfo" class="ms-3 align-self-center text-muted"></span>
         </nav>
     </div>
-         <p style="text-align:center; color:#555; font-style:italic; margin-top:10px;">
-        <b>Note:</b> Only the subjects whose registered time is less than or equal to a month can be edited.
-    </p>
-
-    </div>
-   
+  
     <br>
     <footer>
         &copy; <?= date('Y') ?> Rajiv Gandhi University of Knowledge Technologies Nuzvid. All rights reserved.
@@ -315,7 +324,7 @@ $stmt->close();
 
         function showPage(page) {
             // Remove "No results found" row if present
-            const noResultsRow = document.getElementById('noResultsRow');
+                const noResultsRow = document.getElementById('noResultsRow');
             if (noResultsRow) noResultsRow.remove();
 
             const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
@@ -334,7 +343,7 @@ $stmt->close();
                 const tr = document.createElement('tr');
                 tr.id = 'noResultsRow';
                 const td = document.createElement('td');
-                td.colSpan = 11;
+                td.colSpan = 12;
                 td.className = "text-center text-muted";
                 td.textContent = "No results found";
                 tr.appendChild(td);
@@ -400,9 +409,10 @@ $stmt->close();
                 const year = row.cells[4].textContent.toLowerCase();
                 const section = row.cells[5].textContent.toLowerCase();
                 const semester = row.cells[6].textContent.toLowerCase();
-                const facultyId = row.cells[7].textContent.toLowerCase();
-                const facultyName = row.cells[8].textContent.toLowerCase();
-                const dateTime = row.cells[9].textContent.toLowerCase();
+                const academicYear = row.cells[7].textContent.toLowerCase();
+                const facultyId = row.cells[8].textContent.toLowerCase();
+                const facultyName = row.cells[9].textContent.toLowerCase();
+                const dateTime = row.cells[10].textContent.toLowerCase();
                 return (
                     subjectCode.includes(filter) ||
                     subjectName.includes(filter) ||
@@ -410,6 +420,7 @@ $stmt->close();
                     year.includes(filter) ||
                     section.includes(filter) ||
                     semester.includes(filter) ||
+                    academicYear.includes(filter) ||
                     facultyId.includes(filter) ||
                     facultyName.includes(filter) ||
                     dateTime.includes(filter)
@@ -423,7 +434,3 @@ $stmt->close();
     </script>
 </body>
 </html>
-
-
-
-

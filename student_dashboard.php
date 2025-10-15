@@ -10,7 +10,7 @@ include 'db_connect.php';
 
 // Fetch student details including year, dept, section
 //modify for every sem
-$student_sql = "SELECT studentID, studentName, year, dept, section, 1 
+$student_sql = "SELECT studentID, studentName, year, dept, section, 1
                 FROM userstudent 
                 WHERE studentID=?";
 $stmt = $conn->prepare($student_sql);
@@ -23,6 +23,7 @@ $stmt->close();
 $year     = $student['year'];
 $dept     = $student['dept'];
 $section  = $student['section'];
+$academic_year = '2025-26'; //modify this for every academic year
 $semester = 1;
 
 //modify this for every sem
@@ -40,7 +41,8 @@ SELECT
                     AND att.year = s.year
                     AND att.section = s.section
                     AND att.dept = s.dept
-                    AND att.semester = 1
+                    AND att.semester = s.semester
+                    AND att.academic_year = s.academic_year
         ) AS total_lectures,
     -- Total attended by this student
         (
@@ -51,21 +53,23 @@ SELECT
                     AND att2.year = s.year
                     AND att2.section = s.section
                     AND att2.dept = s.dept
-                    AND att2.semester = 1
+                    AND att2.semester = s.semester
                     AND att2.student_id = ?
                     AND att2.status = 'P'
+                    AND att2.academic_year = s.academic_year
         ) AS days_attended
 FROM subjects s
 WHERE s.year = ?
   AND s.dept = ?
   AND s.section = ?
-  AND s.semester = 1
+  AND s.semester = ?
+  AND s.academic_year = ?
 ORDER BY s.subject_name
 ";
 
 
 $stmt = $conn->prepare($subjects_sql);
-$stmt->bind_param("ssss", $studentID, $year, $dept, $section);
+$stmt->bind_param("ssssss", $studentID, $year, $dept, $section, $semester, $academic_year);
 $stmt->execute();
 $subjects_result = $stmt->get_result();
 $stmt->close();
@@ -74,8 +78,8 @@ $stmt->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -148,6 +152,7 @@ $stmt->close();
               <div class="col-md-6">
                   <p><strong>ID:</strong> <?= htmlspecialchars($student['studentID']); ?></p>
                   <p><strong>Name:</strong> <?= htmlspecialchars($student['studentName']); ?></p>
+                  <p><strong>Academic Year:</strong> <?= htmlspecialchars($academic_year); ?></p>
                   <p><strong>Year:</strong> <?= htmlspecialchars($year); ?></p>
               </div>
               <div class="col-md-6">
@@ -208,6 +213,4 @@ $stmt->close();
   </footer>
 </body>
 </html>
-
-
 
