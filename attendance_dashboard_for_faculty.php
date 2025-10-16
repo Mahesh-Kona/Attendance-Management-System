@@ -5,6 +5,9 @@ if (!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty') {
     die("Access Denied. Faculty only.");
 }
 
+// Check which exam (month/test) the Department Office has selected for this session
+$selected_exam = isset($_SESSION['selected_exam']) ? trim($_SESSION['selected_exam']) : '';
+
 // Set timezone to India (IST)
 date_default_timezone_set("Asia/Kolkata");
 
@@ -17,7 +20,7 @@ $subject_code = $_GET['subject_code'] ?? '';
 $subject_name = $_GET['subject_name'] ?? '';
 $section      = $_GET['section'] ?? '';
 $year         = $_GET['year'] ?? '';   
-
+$semester     = $_GET['semester'] ?? 1; //modify this for every sem
 // Get department from subjects table
 $subject_dept = '';
 if (!empty($subject_code)) {
@@ -49,12 +52,19 @@ while ($row = $students->fetch_assoc()) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Ensure Department Office has selected an exam for this session
+    if (empty($selected_exam)) {
+        echo "<script>alert('Department Office has not selected an exam/month. Please contact the Department Office to set the exam before saving attendance.'); window.location='faculty_dashboard.php';</script>";
+        exit;
+    }
+
     $subject_code  = $_POST['subject_code'];
     $subject_name  = $_POST['subject_name'];
     $faculty_name  = $_POST['faculty_name'];
     $section       = $_POST['section'];
     $dept          = $_POST['dept'];
-    $month         = $_POST['month'];
+    // Use the exam selected by Department Office to avoid tampering
+    $month         = $selected_exam;
 
     // New: Get no_of_periods and period(s)
     $no_of_periods = isset($_POST['no_of_periods']) ? (int)$_POST['no_of_periods'] : 0;
@@ -212,7 +222,7 @@ $conn->close();
 
                            <b>Subject:</b> <?php echo htmlspecialchars($subject_name); ?> (<?php echo htmlspecialchars($subject_code); ?>)<br>
                            <b>Year:</b> <?php echo htmlspecialchars($year); ?><br>
-                           <b>Semester:</b> <?php echo '1' ?><br>
+                           <b>Semester:</b> <?php echo htmlspecialchars($semester); ?><br>
                            <b>Department:</b> <?php echo htmlspecialchars($subject_dept); ?><br>
                            <b>Section:</b> <?php echo htmlspecialchars($section); ?><br>
                            <b>Academic Year:</b> <?php echo htmlspecialchars($academic_year);?><br>
@@ -224,23 +234,23 @@ $conn->close();
                     <div class="col-md-6">
                         <p>
                            <!-- No of Periods (optional) -->
-                           <b>No of Periods (optional):</b><br>
+                           <b>No of Periods (optional):</b>
                            <input type="number" name="no_of_periods" min="1" max="7" placeholder="Enter no of periods" 
                                   class="form-control mb-3" style="width: 150px;">
 
                            <!-- Period(s) -->
-                           <b>Period(s):</b><br>
+                           <b>Period(s):</b>
                            <input type="text" name="period" placeholder="Comma Seperated" 
                                   class="form-control mb-3" style="width: 150px;" required>
 
-                           <!-- Month/Test dropdown -->
-                           <b>Month/Test:</b><br>
-                           <select name="month" class="form-select" style="width: 160px;" required>
-                               <option value="">Select</option>
-                               <option value="MT-1">MT-1</option>
-                               <option value="MT-2">MT-2</option>
-                               <option value="MT-3">MT-3</option>
-                           </select>
+                           <!-- Month/Test: show department-selected exam or a warning -->
+                           <b>Exam:</b>
+                           <?php if (!empty($selected_exam)) { ?>
+                               <input type="text" class="form-control mb-3" style="width:160px;" value="<?php echo htmlspecialchars($selected_exam); ?>" readonly>
+                           <?php } else { ?>
+                               <div class="alert alert-warning p-2" style="width:320px;">Exam is not selected by your Dept Office</div>
+                           <?php } ?>
+                           <!-- Keep a hidden input so server receives subject_code etc. month is set server-side from session -->
                         </p>
                     </div>
                 </div>
@@ -300,7 +310,7 @@ $conn->close();
                     </tbody>
                 </table>
 
-                <button type="submit" class="btn btn-success">Save Attendance</button>
+                <button type="submit" id="saveBtn" class="btn btn-success" <?php if (empty($selected_exam)) echo 'disabled'; ?>>Save Attendance</button>
             </div>
         </form>
     </div>
@@ -356,6 +366,23 @@ $conn->close();
             } else {
                 if (noRow) noRow.remove();
             }
+        });
+    })();
+    </script>
+    <script>
+    // Prevent form submission if department exam not selected (double-check client-side)
+    (function(){
+        var form = document.querySelector('form');
+        var saveBtn = document.getElementById('saveBtn');
+        var examSelected = <?php echo !empty($selected_exam) ? 'true' : 'false'; ?>;
+        if (!form) return;
+        form.addEventListener('submit', function(e){
+            if (!examSelected) {
+                e.preventDefault();
+                alert('Cannot save attendance: Department Office has not selected an exam/month. Please contact them to set the exam first.');
+                return false;
+            }
+            // otherwise allow submit; server will also validate
         });
     })();
     </script>

@@ -1,12 +1,15 @@
 <?php
 session_start();
-if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
+if (!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office') {
     die("Access Denied. This page is only for Department Office users.");
 }
 
+// DB connection
+include "db_connect.php";
+
+// logged-in user id
 $userID = $_SESSION['userID'];
 
-include "db_connect.php";
 // Get department of logged-in user
 $stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username= ?");
 $stmt->bind_param("s", $userID);
@@ -15,10 +18,38 @@ $stmt->bind_result($dept);
 $stmt->fetch();
 $stmt->close();
 
+// Handle exam selection submission: persist to existing current_exam table
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_exam'])) {
+  $selected = $_POST['selected_exam'];
+  $upsert = $conn->prepare("INSERT INTO current_exam (dept, exam) VALUES (?, ?) ON DUPLICATE KEY UPDATE exam = VALUES(exam)");
+  if ($upsert) {
+    $upsert->bind_param("ss", $dept, $selected);
+    $upsert->execute();
+    $upsert->close();
+  }
+  // keep in session for immediate use
+  $_SESSION['selected_exam'] = $selected;
+  header('Location: ' . $_SERVER['PHP_SELF']);
+  exit;
+}
+
+// If session doesn't have selected_exam, try to load persisted exam for this dept
+if (empty($_SESSION['selected_exam']) && !empty($dept)) {
+  $q = $conn->prepare("SELECT exam FROM current_exam WHERE dept = ? LIMIT 1");
+  if ($q) {
+    $q->bind_param("s", $dept);
+    $q->execute();
+    $res = $q->get_result();
+    if ($row = $res->fetch_assoc()) {
+      $_SESSION['selected_exam'] = $row['exam'];
+    }
+    $q->close();
+  }
+}
+
 // Count unique subjects in subjects
 $result = $conn->query("SELECT COUNT(DISTINCT subject_code) AS total_subjects FROM subjects WHERE dept='$dept'");
 $total_subjects = ($result) ? $result->fetch_assoc()['total_subjects'] : 0;
-
 // Count unique faculty in userfaculty
 $result2 = $conn->query("SELECT COUNT(DISTINCT facultyId) AS total_faculty FROM userfaculty WHERE dept='$dept'");
 $total_faculty = ($result2) ? $result2->fetch_assoc()['total_faculty'] : 0;
@@ -29,8 +60,6 @@ $total_students = ($result3) ? $result3->fetch_assoc()['total_students'] : 0;
 
 $conn->close();
 ?>
-
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -48,7 +77,11 @@ $conn->close();
     .header { text-align: center; margin: 30px 0; }
     .header h1 { font-weight: bold; color: #333; }
     .header p { font-size: 1.1rem; color: #666; }
-    .logout-btn { position: absolute; top: 20px; right: 20px; }
+    /* Logout button: align responsively (right on desktop, full-width on small screens) */
+    .logout-btn { position: static; }
+    @media (max-width: 576px) {
+      .logout-btn { width: 100%; display: block; margin-top: 12px; }
+    }
     .card { 
       border-radius: 15px; 
       transition: transform 0.2s, box-shadow 0.2s; 
@@ -98,17 +131,28 @@ $conn->close();
   </div>
 </div> -->
 <!-- Header -->
-    <div class="d-flex align-items-center justify-content-center position-relative mb-4">
-        <div class="text-center">
-            ` <h1>Department Office Dashboard</h1>
-            <p class="text-muted">
-      Department: <strong><?php echo htmlspecialchars($dept); ?></strong>
-    </p>
-        </div>
-        <a href="index.php" class="btn btn-primary position-absolute end-0" onclick=hi()>
-            Logout
-        </a>
+  <div class="d-flex align-items-center justify-content-between mb-4" style="flex-wrap:nowrap;">
+    <div class="text-center text-sm-start" style="min-width:180px; flex-shrink:1;">
+      <h1 class="mb-0">Department Office Dashboard</h1>
+      <p class="text-muted mb-0">
+        Department: <strong><?php echo htmlspecialchars($dept); ?></strong>
+      </p>
     </div>
+    <div class="d-flex align-items-center" style="gap:100px; white-space:nowrap;">
+      <form method="post" class="d-inline-flex align-items-center" id="examForm" onsubmit="return confirmExamSelection();" style="gap:8px; margin:0;">
+        <label for="selected_exam" class="me-2 mb-0">Exam:</label>
+        <select name="selected_exam" id="selected_exam" class="form-select form-select-sm" style="width:150px;">
+          <option value="" <?php if(empty($_SESSION['selected_exam'])) echo 'selected'; ?>>--None--</option>
+          <option value="MT-1" <?php if(isset($_SESSION['selected_exam']) && $_SESSION['selected_exam']==='MT-1') echo 'selected'; ?>>MT-1</option>
+          <option value="MT-2" <?php if(isset($_SESSION['selected_exam']) && $_SESSION['selected_exam']==='MT-2') echo 'selected'; ?>>MT-2</option>
+          <option value="MT-3" <?php if(isset($_SESSION['selected_exam']) && $_SESSION['selected_exam']==='MT-3') echo 'selected'; ?>>MT-3</option>
+         
+        </select>
+        <button type="submit" class="btn btn-secondary btn-success ms-2">Set</button>
+      </form>
+      <a href="index.php" class="btn btn-primary logout-btn d-inline-block" onclick="return hi()">Logout</a>
+    </div>
+  </div>
 
 
 <div class="container">
@@ -227,12 +271,19 @@ $conn->close();
   function hi(){
     return confirm("Logging out! Are you sure?");
   }
+  function confirmExamSelection(){
+    var select = document.getElementById('selected_exam');
+    if(!select) return true;
+    var exam = select.value;
+    var dept = <?php echo json_encode($dept); ?>;
+    if(!exam){
+      return confirm('You are about to clear the selected exam for department "' + dept + '". Confirm?');
+    }
+    return confirm('Set exam "' + exam + '" as the active exam for department "' + dept + '"?');
+  }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
-
-
-
 

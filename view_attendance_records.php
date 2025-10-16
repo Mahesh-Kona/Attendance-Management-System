@@ -7,7 +7,6 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
 }
 
 include "db_connect.php";
-
 // Get query params
 $faculty_id   = $_GET['faculty_id'] ?? '';
 $faculty_name = $_GET['faculty_name'] ?? '';
@@ -160,13 +159,33 @@ $conn->close();
     <a href="faculty_dashboard.php" class="btn btn-primary">Dashboard</a>
 </div>
 
-<div class="info-box mt-3">
-    <p><b>Faculty:</b> <?php echo htmlspecialchars($faculty_name); ?></p>
-    <p><b>Subject:</b> <?php echo htmlspecialchars($subject_code . " - " . $subject_name); ?></p>
-     <p><b>Department:</b> <?php echo htmlspecialchars($dept); ?></p>
-    <p><b>Year:</b> <?php echo htmlspecialchars($year ); ?></p>
-   
-    <p><b>Section:</b> <?php echo htmlspecialchars($section); ?></p>
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div class="info-box mt-3" style="width:50%;">
+        <p><b>Faculty:</b> <?php echo htmlspecialchars($faculty_name); ?></p>
+        <p><b>Subject:</b> <?php echo htmlspecialchars($subject_code . " - " . $subject_name); ?></p>
+        <p><b>Department:</b> <?php echo htmlspecialchars($dept); ?></p>
+        <p><b>Year:</b> <?php echo htmlspecialchars($year ); ?></p>
+        <p><b>Section:</b> <?php echo htmlspecialchars($section); ?></p>
+    </div>
+
+    <div class="mt-3 ms-3" style="min-width:220px; align-self:flex-start;">
+        <form method="post" action="download_attendance_excel.php" class="d-flex align-items-center justify-content-end">
+            <input type="hidden" name="year" value="<?php echo htmlspecialchars($year); ?>">
+            <input type="hidden" name="semester" value="<?php echo htmlspecialchars($semester); ?>">
+            <input type="hidden" name="academic_year" value="<?php echo htmlspecialchars($academic_year); ?>">
+            <input type="hidden" name="dept" value="<?php echo htmlspecialchars($dept); ?>">
+            <input type="hidden" name="section" value="<?php echo htmlspecialchars($section); ?>">
+           
+            <select id="downloadExam" name="month" class="form-select" style="width:auto; display:inline-block; vertical-align:middle;" required>
+                <option value="">Select Exam</option>
+                <option value="MT-1">MT-1</option>
+                <option value="MT-2">MT-2</option>
+                <option value="MT-3">MT-3</option>
+                <option value="All">EST</option>
+            </select>
+            <button type="submit" class="btn btn-success ms-2">Download</button>
+        </form>
+    </div>
 </div>
 
     <div class="table-container">
@@ -271,4 +290,3 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     }
 });
 </script>
-

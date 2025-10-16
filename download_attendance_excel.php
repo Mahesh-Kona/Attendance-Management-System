@@ -1,6 +1,6 @@
 <?php
 session_start();
-if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'dept_office'){
+if(!isset($_SESSION['userID'])){
     die("Access Denied.");
 }
 
@@ -14,15 +14,22 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 include 'db_connect.php';
 
-// Get dept from session
-$userID = $_SESSION['userID'];
-$stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username=?");
-$stmt->bind_param("s", $userID);
-$stmt->execute();
-$stmt->bind_result($dept);
-$stmt->fetch();
-$stmt->close();
+// Determine dept: for dept_office use admin_roles lookup, otherwise allow dept from POST for faculty
+$dept = '';
+if ($_SESSION['role'] === 'dept_office') {
+    $userID = $_SESSION['userID'];
+    $stmt = $conn->prepare("SELECT dept FROM admin_roles WHERE username=?");
+    $stmt->bind_param("s", $userID);
+    $stmt->execute();
+    $stmt->bind_result($dept);
+    $stmt->fetch();
+    $stmt->close();
+} else {
+    // allow dept from POST (e.g., faculty requesting export for their dept)
+    $dept = $_POST['dept'] ?? '';
+}
 
+// If form not submitted yet → keep frontend same
 // If form not submitted yet → keep frontend same
 if(!isset($_POST['year']) || !isset($_POST['month']) || !isset($_POST['academic_year']) || !isset($_POST['semester'])){
     ?>
@@ -170,7 +177,7 @@ footer {
 <body>
  <div class="header-bar">
     <h1>Department of <?php echo htmlspecialchars($dept); ?></h1>
-    <a href="dept_office_dashboard.php" class='btn btn-primary'>Back to Dashboard</a>
+    <a href="dept_office_dashboard.php" class='btn btn-primary'>Dashboard</a>
 </div>
 
     <!-- Form -->
@@ -211,10 +218,11 @@ footer {
                     <label>Exam:</label>
                     <select name="month" required>
                         <option value="">--Select--</option>
-                        <option value="All">Full Semester</option>
+                      
                         <option value="MT-1">MT-1</option>
                         <option value="MT-2">MT-2</option>
                         <option value="MT-3">MT-3</option>
+                          <option value="All">EST</option>
                     </select>
                 </div>
             </div>
@@ -232,16 +240,24 @@ footer {
 }
 
 // Get filters from POST
+// Get filters from POST
 $year = $_POST['year'];
 $month = $_POST['month'];
 $academic_year = $_POST['academic_year'];
 $semester = $_POST['semester'];
+$sectionFilter = $_POST['section'] ?? null;
+$deptFilter = $_POST['dept'] ?? $dept;
+
+// If current user is dept_office, enforce downloading all sections (ignore any provided section)
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'dept_office') {
+    $sectionFilter = null;
+}
 
 // Subjects list
 $subjects = [];
 $subRes = $conn->query("SELECT DISTINCT subject_code, subject_name 
                         FROM subjects 
-                        WHERE dept='$dept' AND year='$year' AND semester='$semester'");
+                        WHERE dept='". $conn->real_escape_string($deptFilter) ."' AND year='". $conn->real_escape_string($year) ."' AND semester='". $conn->real_escape_string($semester) ."'");
 while($s = $subRes->fetch_assoc()){
     $subjects[$s['subject_code']] = $s['subject_name'];
 }
@@ -345,9 +361,13 @@ while($stu = $students->fetch_assoc()){
 }
 
 /* ---------------- Section Sheets ---------------- */
-$sections = $conn->query("SELECT DISTINCT section 
-                          FROM userstudent 
-                          WHERE dept='$dept' AND year='$year' ORDER BY section ASC");
+$sectionsQuery = "SELECT DISTINCT section FROM userstudent WHERE dept='". $conn->real_escape_string($deptFilter) ."' AND year='". $conn->real_escape_string($year) ."' ORDER BY section ASC";
+if ($sectionFilter) {
+    // Only that one section
+    $sections = $conn->query("SELECT DISTINCT section FROM userstudent WHERE dept='". $conn->real_escape_string($deptFilter) ."' AND year='". $conn->real_escape_string($year) ."' AND section='". $conn->real_escape_string($sectionFilter) ."'");
+} else {
+    $sections = $conn->query($sectionsQuery);
+}
 
 $sheetIndex = 1;
 while($sec = $sections->fetch_assoc()){
@@ -453,10 +473,56 @@ foreach ($spreadsheet->getAllSheets() as $sheet) {
 }
 
 // File name
-if ($month === "All") {
-    $fileName = "{$year}_Sem{$semester}_AY{$academic_year}_Attendance_FullSemester.xlsx";
+// Sanitize parts for filename (allow alphanumerics, dash, underscore)
+$safe = function($s){
+    return preg_replace('/[^A-Za-z0-9_\-]/', '', str_replace(' ', '_', $s));
+};
+$yearSafe = $safe($year);
+$sectionSafe = $safe($sectionFilter ?? ($section ?? ''));
+
+// For dept_office, ensure section is not included in filename
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'dept_office') {
+    $sectionSafe = '';
+}
+$semSafe = $safe($semester);
+$aySafe = $safe($academic_year);
+$examSafe = ($month === 'All') ? 'FullSemester' : $safe($month);
+
+// Map department codes to friendly names
+$deptSafe = $safe($dept);
+$dept_names = [
+   'Computer Science & Engineering'=> 'CSE',
+     'Electronics & Communication Engineering'   =>  'ECE',
+     'Mechanical Engineering'   =>  'Mech',
+ 'Electrical & Electronics Engineering'   =>  'EEE',
+   'Civil Engineering'   =>   'Civil' ,
+    'Metallurgical & Material Science Engineering'   => 'MME',
+     'Chemical Engineering'   => 'Chemical'
+];
+
+// Determine dept short code robustly (mapping expects full department name)
+$deptCode = $dept_names[$dept] ?? null;
+if (!$deptCode) {
+    // try fuzzy match against mapping keys (case-insensitive)
+    foreach ($dept_names as $fullName => $short) {
+        if (stripos($fullName, str_replace(['_','-'], ' ', $deptSafe)) !== false || stripos($fullName, $dept) !== false) {
+            $deptCode = $short;
+            break;
+        }
+    }
+}
+if (!$deptCode) {
+    // fallback to sanitized dept string
+    $deptCode = $deptSafe ?: 'dept';
+}
+
+// Filename format:
+// - If section provided: year + deptCode + _section{section}__sem{sem}_AY{academic_year}_{exam}_attendance.xlsx
+// - If no section: year + deptCode + __sem{sem}_AY{academic_year}_{exam}_attendance.xlsx
+if (!empty($sectionSafe)) {
+    $fileName = sprintf("%s%s_section%s__sem%s_AY%s_%s_attendance.xlsx", $yearSafe, $deptCode, $sectionSafe, $semSafe, $aySafe, $examSafe);
 } else {
-    $fileName = "{$year}_{$semester}_AY{$academic_year}_{$month}_Attendance.xlsx";
+    $fileName = sprintf("%s%s__sem%s_AY%s_%s_attendance.xlsx", $yearSafe, $deptCode, $semSafe, $aySafe, $examSafe);
 }
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -467,5 +533,3 @@ $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
 exit;
 ?>
-
-

@@ -7,7 +7,6 @@ if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
 }
 
 include "db_connect.php";
-
 $facultyID = $_SESSION['userID'];
 
 // Fetch faculty details from userfaculty
@@ -225,5 +224,3 @@ $conn->close();
     </footer>
 </body>
 </html>
-
-
