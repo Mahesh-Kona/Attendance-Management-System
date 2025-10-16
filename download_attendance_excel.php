@@ -4,6 +4,10 @@ if(!isset($_SESSION['userID'])){
     die("Access Denied.");
 }
 
+// Prevent PHP warnings/notices from being sent into the binary output on production
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+
 require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -525,11 +529,23 @@ if (!empty($sectionSafe)) {
     $fileName = sprintf("%s%s__sem%s_AY%s_%s_attendance.xlsx", $yearSafe, $deptCode, $semSafe, $aySafe, $examSafe);
 }
 
+// Clear (end) any output buffers to avoid corrupting the Excel file
+if (ob_get_length()) {
+    @ob_end_clean();
+}
+
+// Send binary-safe headers
+header('Content-Description: File Transfer');
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header("Content-Disposition: attachment;filename=$fileName");
-header('Cache-Control: max-age=0');
+header('Content-Disposition: attachment; filename="' . basename($fileName) . '"');
+header('Content-Transfer-Encoding: binary');
+header('Expires: 0');
+header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+header('Pragma: public');
 
 $writer = new Xlsx($spreadsheet);
+// Flush system output buffer and write file
 $writer->save('php://output');
+flush();
 exit;
 ?>

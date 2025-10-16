@@ -34,6 +34,20 @@ if (!empty($subject_code)) {
     }
     $stmt->close();
 }
+// If session doesn't have selected_exam, try to load persisted exam for this subject's department
+if (empty($selected_exam) && !empty($subject_dept)) {
+    $q = $conn->prepare("SELECT exam FROM current_exam WHERE dept = ? LIMIT 1");
+    if ($q) {
+        $q->bind_param("s", $subject_dept);
+        $q->execute();
+        $r = $q->get_result();
+        if ($rr = $r->fetch_assoc()) {
+            $_SESSION['selected_exam'] = $rr['exam'];
+            $selected_exam = trim($rr['exam']);
+        }
+        $q->close();
+    }
+}
 $academic_year='2025-26';
 // Fetch students
 $sql = "SELECT studentId, studentName, year, '2025-26', section, dept,'1'
