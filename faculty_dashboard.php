@@ -3,7 +3,7 @@ session_start();
 
 // Check if faculty is logged in
 if(!isset($_SESSION['userID']) || $_SESSION['role'] !== 'faculty'){
-    die("Access Denied. This action is only allowed for Faculty users.");
+    die("Access Denied. This action is only allowed for Faculty.");
 }
 
 include "db_connect.php";
@@ -224,3 +224,4 @@ $conn->close();
     </footer>
 </body>
 </html>
+
