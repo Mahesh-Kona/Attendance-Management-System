@@ -307,7 +307,8 @@ $stmt->close();
 
         const table = document.getElementById('subjectsTable');
         const tbody = table.querySelector('tbody');
-        const allRows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.cells.length === 11);
+    // Count rows that represent subject entries (should have 12 columns). Use >=11 to be robust.
+    const allRows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.cells.length >= 11);
         const searchInput = document.getElementById('searchInput');
         const pagination = document.getElementById('pagination');
         const pageInfo = document.getElementById('pageInfo');
@@ -338,8 +339,10 @@ $stmt->close();
             const end = start + pageSize;
             const pageRows = filteredRows.slice(start, end);
 
-            if (filteredRows.length === 0) {
-                // Show "No results found"
+            // Only show the server-side "No results found" placeholder when there are
+            // truly no subjects returned from the database (i.e. allRows is empty).
+            // Do not show this placeholder when the user filters/searches the table.
+            if (allRows.length === 0) {
                 const tr = document.createElement('tr');
                 tr.id = 'noResultsRow';
                 const td = document.createElement('td');

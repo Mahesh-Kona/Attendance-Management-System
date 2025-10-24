@@ -34,13 +34,14 @@ $yearFilter = $_GET['year'] ?? 'All';
 $sectionFilter = $_GET['section'] ?? 'All';
 $academicYearFilter = $_GET['academic_year'] ?? 'All';  // 🔹 new filter
 $semesterFilter=$_GET['semester'] ?? 'All';
-// Fetch all faculty and their subjects (if any) for this department
+// Fetch only faculty that are teaching subjects in this department (show per-subject rows)
+// We join subjects first and require s.dept = ? so only faculty who teach in this dept appear.
 $sql = "
     SELECT u.facultyId, u.facultyName, s.subject_code, s.year, s.section, s.subject_name, 
            s.credits, s.semester, s.date_time, s.academic_year
-    FROM userfaculty u
-    LEFT JOIN subjects s ON u.facultyId = s.faculty_id
-    WHERE u.dept = ?
+    FROM subjects s
+    INNER JOIN userfaculty u ON u.facultyId = s.faculty_id
+    WHERE s.dept = ?
 ";
 
 $params = [$dept_code];
@@ -85,6 +86,7 @@ $conn->close();
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Faculty Allotment History</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
@@ -370,4 +372,3 @@ showPage(1);
 </script>
 </body>
 </html>
-

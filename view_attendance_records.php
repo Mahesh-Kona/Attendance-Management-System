@@ -208,37 +208,44 @@ $conn->close();
         <tbody>
         <?php 
         $sno = 1;
-        foreach ($students as $sid => $sname) { 
-            $total_classes = 0;
-            $total_present = 0;
-            ?>
-            <tr>
-                <td><?php echo $sno++; ?></td>
-                <td class="sticky-col"><?php echo htmlspecialchars($sid); ?></td>
-                <td class="sticky-col-2"><?php echo htmlspecialchars($sname); ?></td>
-                <?php foreach ($dates as $d) { 
-                    $statuses = $attendance_data[$sid][$d] ?? [];
-                    $cell_content = "";
-                    if ($statuses) {
-                        foreach ($statuses as $st) {
-                            if ($st === 'P' || $st === 'Present') {
-                                $cell_content .= "<span class='text-success'><b>P</b></span> ";
-                                $total_present++;
-                            } elseif ($st === 'A' || $st === 'Absent') {
-                                $cell_content .= "<span class='text-danger'><b>A</b></span> ";
-                            }
-                            $total_classes++;
-                        }
-                    } else {
-                        $cell_content = "<span class='text-muted'>-</span>";
-                    }
+        // If there are no students in this section/year/dept, show a friendly message row
+        if (empty($students)) {
+            $colspan = count($dates) + 5; // Roll, ID, Name, dates..., classes conducted, classes attended
+            echo '<tr id="noStudentsRow"><td colspan="' . $colspan . '" class="text-center text-muted">No results found</td></tr>';
+        } else {
+            foreach ($students as $sid => $sname) { 
+                $total_classes = 0;
+                $total_present = 0;
                 ?>
-                <td><?php echo $cell_content; ?></td>
-                <?php } ?>
-                <td><b><?php echo $total_classes; ?></b></td>
-                <td><b><?php echo $total_present; ?></b></td>
-            </tr>
-        <?php } ?>
+                <tr>
+                    <td><?php echo $sno++; ?></td>
+                    <td class="sticky-col"><?php echo htmlspecialchars($sid); ?></td>
+                    <td class="sticky-col-2"><?php echo htmlspecialchars($sname); ?></td>
+                    <?php foreach ($dates as $d) { 
+                        $statuses = $attendance_data[$sid][$d] ?? [];
+                        $cell_content = "";
+                        if ($statuses) {
+                            foreach ($statuses as $st) {
+                                if ($st === 'P' || $st === 'Present') {
+                                    $cell_content .= "<span class='text-success'><b>P</b></span> ";
+                                    $total_present++;
+                                } elseif ($st === 'A' || $st === 'Absent') {
+                                    $cell_content .= "<span class='text-danger'><b>A</b></span> ";
+                                }
+                                $total_classes++;
+                            }
+                        } else {
+                            $cell_content = "<span class='text-muted'>-</span>";
+                        }
+                    ?>
+                    <td><?php echo $cell_content; ?></td>
+                    <?php } ?>
+                    <td><b><?php echo $total_classes; ?></b></td>
+                    <td><b><?php echo $total_present; ?></b></td>
+                </tr>
+            <?php }
+        }
+        ?>
         </tbody>
     </table>
 </div>

@@ -22,17 +22,40 @@ $section      = $_GET['section'] ?? '';
 $year         = $_GET['year'] ?? '';   
 $semester     = $_GET['semester'] ?? 1; //modify this for every sem
 // Get department from subjects table
-$subject_dept = '';
-if (!empty($subject_code)) {
-    $sql = "SELECT dept FROM subjects WHERE subject_code = ? LIMIT 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $subject_code);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($row = $res->fetch_assoc()) {
-        $subject_dept = $row['dept'];
+// Determine department for this class.
+// Prefer the explicit dept passed in the URL (faculty_dashboard.php includes it).
+$subject_dept = $_GET['dept'] ?? '';
+// If dept not provided, try to resolve it using subject_code + faculty_id to support
+// cases where same subject_code is used across multiple departments.
+if (empty($subject_dept) && !empty($subject_code)) {
+    // Prefer matching subject_code + faculty_id (if faculty_id provided)
+    if (!empty($faculty_id)) {
+        $sql = "SELECT dept FROM subjects WHERE subject_code = ? AND faculty_id = ? LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("ss", $subject_code, $faculty_id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($row = $res->fetch_assoc()) {
+                $subject_dept = $row['dept'];
+            }
+            $stmt->close();
+        }
     }
-    $stmt->close();
+    // Fallback: if still empty, pick the first dept for this subject_code
+    if (empty($subject_dept)) {
+        $sql = "SELECT dept FROM subjects WHERE subject_code = ? LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param("s", $subject_code);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($row = $res->fetch_assoc()) {
+                $subject_dept = $row['dept'];
+            }
+            $stmt->close();
+        }
+    }
 }
 // If session doesn't have selected_exam, try to load persisted exam for this subject's department
 if (empty($selected_exam) && !empty($subject_dept)) {
@@ -50,18 +73,25 @@ if (empty($selected_exam) && !empty($subject_dept)) {
 }
 $academic_year='2025-26';
 // Fetch students
-$sql = "SELECT studentId, studentName, year, '2025-26', section, dept,'1'
-        FROM userstudent
-        WHERE section = ? AND dept = ? AND year = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("sss", $section, $subject_dept, $year);
-$stmt->execute();
-$students = $stmt->get_result();
-$stmt->close();
-
+// If dept or section or year are missing, avoid running an ambiguous query.
 $students_data = [];
-while ($row = $students->fetch_assoc()) {
-    $students_data[] = $row;
+if (empty($subject_dept)) {
+    // No dept resolved - show no students and inform user (dept should be passed from faculty dashboard)
+    $students = null;
+} else {
+    $sql = "SELECT studentId, studentName, year, academic_year, section, dept, '1' as dummy
+            FROM userstudent
+            WHERE section = ? AND dept = ? AND year = ?";
+    $stmt = $conn->prepare($sql);
+    if ($stmt) {
+        $stmt->bind_param("sss", $section, $subject_dept, $year);
+        $stmt->execute();
+        $students = $stmt->get_result();
+        $stmt->close();
+        while ($row = $students->fetch_assoc()) {
+            $students_data[] = $row;
+        }
+    }
 }
 
 // Handle form submission
