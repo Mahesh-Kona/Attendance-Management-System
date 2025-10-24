@@ -529,23 +529,68 @@ if (!empty($sectionSafe)) {
     $fileName = sprintf("%s%s__sem%s_AY%s_%s_attendance.xlsx", $yearSafe, $deptCode, $semSafe, $aySafe, $examSafe);
 }
 
+// Increase limits for large exports (adjust as needed for your environment)
+@set_time_limit(0);
+@ini_set('memory_limit', '512M');
+
 // Clear (end) any output buffers to avoid corrupting the Excel file
-if (ob_get_length()) {
+while (ob_get_level()) {
     @ob_end_clean();
 }
 
-// Send binary-safe headers
-header('Content-Description: File Transfer');
-header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment; filename="' . basename($fileName) . '"');
-header('Content-Transfer-Encoding: binary');
-header('Expires: 0');
-header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-header('Pragma: public');
-
+// Try to write to a system temp file first to make downloads more reliable on shared/managed hosting
 $writer = new Xlsx($spreadsheet);
-// Flush system output buffer and write file
-$writer->save('php://output');
-flush();
+$tmpDir = sys_get_temp_dir();
+$tmpFile = tempnam($tmpDir, 'att_');
+// tempnam creates a file without extension; append .xlsx to preserve client behavior
+$tmpXlsx = $tmpFile . '.xlsx';
+
+try {
+    // Save to temp xlsx file
+    $writer->save($tmpXlsx);
+
+    // Send headers with Content-Length for better compatibility with browsers and proxies
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    // Use RFC5987 filename* for UTF-8 safety and fallback filename
+    $safeName = basename($fileName);
+    $encodedName = rawurlencode($safeName);
+    header("Content-Disposition: attachment; filename=\"$safeName\"; filename*=UTF-8''$encodedName");
+    header('Content-Transfer-Encoding: binary');
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate');
+    header('Pragma: public');
+    header('Content-Length: ' . filesize($tmpXlsx));
+
+    // Stream the file
+    $fp = fopen($tmpXlsx, 'rb');
+    if ($fp) {
+        while (!feof($fp)) {
+            echo fread($fp, 8192);
+            flush();
+        }
+        fclose($fp);
+    }
+} catch (Exception $e) {
+    // On failure, attempt direct output as a fallback
+    @ob_end_clean();
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="' . basename($fileName) . '"');
+    header('Content-Transfer-Encoding: binary');
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+    header('Pragma: public');
+    $writer->save('php://output');
+}
+
+// remove temp files if they exist
+if (file_exists($tmpXlsx)) {
+    @unlink($tmpXlsx);
+}
+if (file_exists($tmpFile)) {
+    @unlink($tmpFile);
+}
+
 exit;
 ?>
