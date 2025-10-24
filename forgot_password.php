@@ -38,6 +38,109 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         $stmt->close();
     }
+    else if (isset($_POST['reset_pass'])) {
+        // Handle password reset: verify answer then update password
+        $role = isset($_POST['role']) ? $_POST['role'] : '';
+        $userID = isset($_POST['userID']) ? trim($_POST['userID']) : '';
+        $answer = isset($_POST['answer']) ? strtolower(trim($_POST['answer'])) : '';
+        $new_password = isset($_POST['new_password']) ? trim($_POST['new_password']) : '';
+
+        // Attempt to fetch security question so we can redisplay step 2 on errors
+        if ($role == 'faculty') {
+            $q = "SELECT security_question FROM userfaculty WHERE facultyID=?";
+            $qst = $conn->prepare($q);
+            $qst->bind_param("s", $userID);
+        } else if ($role == 'student') {
+            $q = "SELECT security_question FROM userstudent WHERE studentID=?";
+            $qst = $conn->prepare($q);
+            $qst->bind_param("s", $userID);
+        } else {
+            $q = "SELECT security_question FROM admin_roles WHERE username=? AND role=?";
+            $qst = $conn->prepare($q);
+            $qst->bind_param("ss", $userID, $role);
+        }
+        if (isset($qst)) {
+            $qst->execute();
+            $qr = $qst->get_result();
+            if ($qr && $qr->num_rows == 1) {
+                $rrow = $qr->fetch_assoc();
+                $security_question = $rrow['security_question'];
+                $step = 2;
+            }
+            $qst->close();
+        }
+
+        // basic validations
+        if ($userID == '' || $answer == '' || $new_password == '') {
+            $error_message = 'Please fill all fields.';
+            $step = 2;
+        }
+
+        if (!isset($error_message) && strlen($new_password) < 5) {
+            $error_message = 'Password must be at least 5 characters long.';
+            $step = 2;
+        }
+
+        // Find stored answer
+        if ($role == 'faculty') {
+            $sql = "SELECT security_answer FROM userfaculty WHERE facultyID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("s", $userID);
+        } else if ($role == 'student') {
+            $sql = "SELECT security_answer FROM userstudent WHERE studentID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("s", $userID);
+        } else {
+            // admin roles (dept_office / hod / dean)
+            $sql = "SELECT security_answer FROM admin_roles WHERE username=? AND role=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ss", $userID, $role);
+        }
+
+        // only continue if no earlier validation error
+        if (!isset($error_message)) {
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result && $result->num_rows == 1) {
+            $row = $result->fetch_assoc();
+            $stored_answer = isset($row['security_answer']) ? strtolower(trim($row['security_answer'])) : '';
+                if ($stored_answer !== '' && $stored_answer === $answer) {
+                // Update password (note: project stores plaintext passwords elsewhere)
+                if ($role == 'faculty') {
+                    $upd = $conn->prepare("UPDATE userfaculty SET password=? WHERE facultyID=?");
+                    $upd->bind_param("ss", $new_password, $userID);
+                } else if ($role == 'student') {
+                    $upd = $conn->prepare("UPDATE userstudent SET password=? WHERE studentID=?");
+                    $upd->bind_param("ss", $new_password, $userID);
+                } else {
+                    $upd = $conn->prepare("UPDATE admin_roles SET password=? WHERE username=? AND role=?");
+                    $upd->bind_param("sss", $new_password, $userID, $role);
+                }
+                    if ($upd->execute()) {
+                        echo "<script>alert('Password reset successful. You can now login with your new password.');window.location.href='index.php';</script>";
+                        $upd->close();
+                        $stmt->close();
+                        exit;
+                    } else {
+                        $error_message = 'Failed to update password. Please try again later.';
+                        $step = 2;
+                        $upd->close();
+                        $stmt->close();
+                    }
+
+                } else {
+                    $error_message = 'Security answer is incorrect.';
+                    $step = 2;
+                    $stmt->close();
+                }
+            } else {
+                $error_message = 'User not found.';
+                $step = 1; // send back to first step if user not found
+                if ($stmt) $stmt->close();
+            }
+        }
+    }
 }
 ?>
 
@@ -95,6 +198,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <main>
         <div class="auth-card">
             <h2 class="text-center mb-3">Forgot Password</h2>
+            <?php if (isset($error_message) && $error_message != '') { ?>
+                <div class="alert alert-warning"><?php echo htmlspecialchars($error_message); ?></div>
+            <?php } ?>
 
             <?php if ($step == 1) { ?>
                 <form method="POST" action="">
