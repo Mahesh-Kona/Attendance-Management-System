@@ -529,66 +529,99 @@ if (!empty($sectionSafe)) {
     $fileName = sprintf("%s%s__sem%s_AY%s_%s_attendance.xlsx", $yearSafe, $deptCode, $semSafe, $aySafe, $examSafe);
 }
 
-// Increase limits for large exports (adjust as needed for your environment)
+// Increase limits for export and disable output compression which can corrupt binary downloads
 @set_time_limit(0);
 @ini_set('memory_limit', '512M');
+@ini_set('zlib.output_compression', '0');
 
-// Clear (end) any output buffers to avoid corrupting the Excel file
-while (ob_get_level()) {
+// Clear all output buffers to avoid corrupting the Excel file
+while (ob_get_level() > 0) {
     @ob_end_clean();
 }
 
-// Try to write to a system temp file first to make downloads more reliable on shared/managed hosting
 $writer = new Xlsx($spreadsheet);
-$tmpDir = sys_get_temp_dir();
-$tmpFile = tempnam($tmpDir, 'att_');
-// tempnam creates a file without extension; append .xlsx to preserve client behavior
-$tmpXlsx = $tmpFile . '.xlsx';
 
-try {
-    // Save to temp xlsx file
-    $writer->save($tmpXlsx);
+// Prepare filename values for headers
+$safeName = basename($fileName);
+$encodedName = rawurlencode($safeName);
 
-    // Send headers with Content-Length for better compatibility with browsers and proxies
+// Helper to send download headers
+$sendHeaders = function($filesize = null) use ($safeName, $encodedName) {
+    if (headers_sent()) return false;
     header('Content-Description: File Transfer');
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    // Use RFC5987 filename* for UTF-8 safety and fallback filename
-    $safeName = basename($fileName);
-    $encodedName = rawurlencode($safeName);
     header("Content-Disposition: attachment; filename=\"$safeName\"; filename*=UTF-8''$encodedName");
     header('Content-Transfer-Encoding: binary');
     header('Expires: 0');
-    header('Cache-Control: must-revalidate');
+    header('Cache-Control: private, max-age=0, must-revalidate');
     header('Pragma: public');
-    header('Content-Length: ' . filesize($tmpXlsx));
+    if ($filesize !== null) header('Content-Length: ' . $filesize);
+    return true;
+};
 
-    // Stream the file
-    $fp = fopen($tmpXlsx, 'rb');
-    if ($fp) {
-        while (!feof($fp)) {
-            echo fread($fp, 8192);
-            flush();
+// Try to write to system temp directory first (more reliable on shared hosts)
+$tmpDir = sys_get_temp_dir();
+$useTemp = is_dir($tmpDir) && is_writable($tmpDir);
+$tmpFile = null;
+$tmpXlsx = null;
+
+if ($useTemp) {
+    $tmpFile = tempnam($tmpDir, 'att_');
+    if ($tmpFile !== false) {
+        $tmpXlsx = $tmpFile . '.xlsx';
+        try {
+            // Save to temp xlsx file
+            $writer->save($tmpXlsx);
+
+            // ensure file exists and has content
+            if (file_exists($tmpXlsx) && filesize($tmpXlsx) > 0) {
+                $filesize = filesize($tmpXlsx);
+                if ($sendHeaders($filesize) === false) {
+                    // headers already sent — fall back to inline link
+                    echo "<p>Download ready: <a href='#' onclick=\"window.location.reload();\">Refresh to retry</a></p>";
+                } else {
+                    // Stream file in chunks
+                    $fp = fopen($tmpXlsx, 'rb');
+                    if ($fp) {
+                        while (!feof($fp)) {
+                            echo fread($fp, 8192);
+                            flush();
+                        }
+                        fclose($fp);
+                    }
+                }
+            } else {
+                // Save failed; fall back to direct output
+                if ($sendHeaders() !== false) {
+                    $writer->save('php://output');
+                }
+            }
+        } catch (Exception $e) {
+            // Fallback to direct streaming
+            if ($sendHeaders() !== false) {
+                $writer->save('php://output');
+            }
         }
-        fclose($fp);
+    } else {
+        // Could not create temp file — fall back to direct streaming
+        if ($sendHeaders() !== false) {
+            $writer->save('php://output');
+        }
     }
-} catch (Exception $e) {
-    // On failure, attempt direct output as a fallback
-    @ob_end_clean();
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="' . basename($fileName) . '"');
-    header('Content-Transfer-Encoding: binary');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-    header('Pragma: public');
-    $writer->save('php://output');
+} else {
+    // Temp dir not writable — stream directly (ensure buffers cleaned)
+    if ($sendHeaders() !== false) {
+        $writer->save('php://output');
+    } else {
+        echo "<p>Unable to send file: headers already sent.</p>";
+    }
 }
 
-// remove temp files if they exist
-if (file_exists($tmpXlsx)) {
+// Cleanup temp artifacts if any
+if (!empty($tmpXlsx) && file_exists($tmpXlsx)) {
     @unlink($tmpXlsx);
 }
-if (file_exists($tmpFile)) {
+if (!empty($tmpFile) && file_exists($tmpFile)) {
     @unlink($tmpFile);
 }
 
